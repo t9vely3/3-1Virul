@@ -3,33 +3,210 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>바이럴 마케팅 관리</title>
-  <!-- version: 2026-04-28-marketing-b46a6 -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <title>Viral Marketing</title>
+  <!-- version: 2026-04-28-dark-premium -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
-    *{box-sizing:border-box}
-    body{margin:0;font-family:'Noto Sans KR',system-ui,sans-serif;background:#f5f7fb;color:#0f172a}
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0b;
+      --surface:#111113;
+      --surface-2:#18181b;
+      --surface-3:#1f1f23;
+      --border:#1f1f23;
+      --border-strong:#2a2a2e;
+      --border-input:#3a3a3e;
+      --text:#fafafa;
+      --text-2:#a1a1aa;
+      --text-3:#52525b;
+      --text-4:#3f3f46;
+      --accent:#10b981;
+      --accent-2:#34d399;
+      --accent-soft:rgba(16,185,129,0.1);
+      --good:#10b981;
+      --good-bg:rgba(16,185,129,0.12);
+      --good-border:rgba(16,185,129,0.25);
+      --warn:#f59e0b;
+      --warn-bg:rgba(245,158,11,0.12);
+      --warn-border:rgba(245,158,11,0.25);
+      --bad:#ef4444;
+      --bad-bg:rgba(239,68,68,0.12);
+      --bad-border:rgba(239,68,68,0.25);
+    }
+    html,body{height:100%}
+    body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden}
+    button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+    input,select,textarea{font-family:inherit;color:inherit}
+    a{color:var(--accent-2);text-decoration:none}
+    a:hover{text-decoration:underline}
+    ::-webkit-scrollbar{width:10px;height:10px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:5px;border:2px solid var(--bg)}
+    ::-webkit-scrollbar-thumb:hover{background:var(--border-input)}
     .ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .soft-card{box-shadow:0 20px 50px rgba(15,23,42,.07)}
-    .sidebar-grad{background:linear-gradient(180deg,#08122d 0%,#0d1736 48%,#111827 100%)}
-    .purple-grad{background:linear-gradient(135deg,#7c3aed 0%,#4f46e5 55%,#06b6d4 100%)}
-    .no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+
+    .layout{display:grid;grid-template-columns:220px 1fr;height:100vh}
+    .sidebar{background:var(--surface);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;overflow-y:auto}
+    .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 22px}
+    .brand-mark{width:24px;height:24px;background:var(--accent);border-radius:6px;display:grid;place-items:center;color:#000;font-weight:700;font-size:12px;letter-spacing:-0.02em}
+    .brand-name{font-weight:600;font-size:13.5px;letter-spacing:-0.01em}
+    .nav-section{font-size:11px;font-weight:500;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;padding:14px 8px 8px}
+    .nav-item{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:6px;font-size:13px;color:var(--text-2);font-weight:500;width:100%;text-align:left;position:relative;transition:background 0.1s}
+    .nav-item:hover{background:var(--surface-2);color:var(--text)}
+    .nav-item.active{background:var(--surface-2);color:var(--text);font-weight:600}
+    .nav-item.active::before{content:'';position:absolute;left:-14px;width:2px;height:16px;background:var(--accent);border-radius:0 2px 2px 0}
+    .nav-item svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .nav-item .badge{margin-left:auto;font-size:11px;color:var(--text-3);font-weight:500;font-variant-numeric:tabular-nums}
+    .user-card{margin-top:auto;border-top:1px solid var(--border);padding:12px 6px 0}
+    .user-row{display:flex;align-items:center;gap:9px;padding:6px;border-radius:6px;width:100%}
+    .avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);color:#000;display:grid;place-items:center;font-weight:700;font-size:12px;flex-shrink:0}
+    .user-name{font-weight:600;font-size:13px;text-align:left}
+    .user-role{font-size:11px;color:var(--text-3);text-align:left}
+    .logout-btn{margin-top:8px;font-size:11px;color:var(--text-3);font-weight:500;padding:4px 6px;border-radius:4px}
+    .logout-btn:hover{color:var(--text-2);background:var(--surface-2)}
+
+    main{overflow-y:auto;padding:24px 32px}
+    .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:16px}
+    .page-title{font-size:22px;font-weight:600;letter-spacing:-0.025em}
+    .page-sub{font-size:13px;color:var(--text-3);margin-top:2px}
+    .header-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+
+    .btn{padding:7px 13px;border-radius:6px;font-size:13px;font-weight:500;border:1px solid var(--border-strong);background:var(--surface);color:var(--text);transition:all 0.1s}
+    .btn:hover{background:var(--surface-2);border-color:var(--border-input)}
+    .btn-primary{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
+    .btn-primary:hover{background:#0ea571;border-color:#0ea571}
+    .btn-danger{background:transparent;color:#f87171;border-color:transparent;padding:4px 8px;font-size:12px;border-radius:4px}
+    .btn-danger:hover{background:var(--bad-bg);color:#fca5a5}
+    .btn-ghost{background:transparent;border:1px solid transparent;padding:5px 10px;font-size:12px;color:var(--text-2)}
+    .btn-ghost:hover{background:var(--surface-2);color:var(--text)}
+    .btn-sm{padding:4px 10px;font-size:12px;border-radius:5px}
+
+    .filter-row{display:flex;gap:6px;align-items:center;margin-bottom:18px;padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;flex-wrap:wrap}
+    .filter-chip{padding:5px 11px;border-radius:5px;font-size:12.5px;color:var(--text-2);font-weight:500}
+    .filter-chip:hover{color:var(--text)}
+    .filter-chip.active{background:var(--accent);color:#000;font-weight:600}
+    .divider-v{width:1px;height:18px;background:var(--border);margin:0 4px}
+    .filter-select{padding:5px 9px;border:0;background:transparent;font-size:12.5px;color:var(--text-2);font-weight:500;outline:none}
+    .filter-select option{background:var(--surface);color:var(--text)}
+    .filter-meta{margin-left:auto;font-size:11.5px;color:var(--text-3);padding-right:8px}
+
+    .panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px}
+    .panel-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:12px}
+    .panel-title{font-size:14px;font-weight:600;letter-spacing:-0.01em}
+    .panel-sub{font-size:11.5px;color:var(--text-3);margin-top:2px}
+    .panel-action{font-size:11.5px;color:var(--accent);font-weight:500;cursor:pointer;flex-shrink:0}
+    .panel-action:hover{text-decoration:underline}
+
+    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+    @media (max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+    .kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;position:relative;overflow:hidden}
+    .kpi-label{font-size:12px;color:var(--text-3);font-weight:500}
+    .kpi-value{font-size:28px;font-weight:600;letter-spacing:-0.03em;margin-top:4px;font-variant-numeric:tabular-nums}
+    .kpi-sub{font-size:11.5px;color:var(--text-3);font-weight:500;margin-top:3px;font-variant-numeric:tabular-nums}
+    .kpi-sub.good{color:var(--accent-2)}
+    .kpi-sub.bad{color:#fca5a5}
+
+    .grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+    .grid-2-eq{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .grid-write{display:grid;grid-template-columns:480px 1fr;gap:16px}
+    @media (max-width:1100px){.grid-2,.grid-2-eq,.grid-write{grid-template-columns:1fr}}
+    .stack-md{display:flex;flex-direction:column;gap:18px}
+
+    .form-field{display:block;margin-bottom:14px}
+    .form-label{display:block;font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:6px;letter-spacing:0.01em}
+    .form-input,.form-select{width:100%;padding:9px 12px;border:1px solid var(--border-strong);background:var(--surface-2);color:var(--text);border-radius:6px;font-size:13px;outline:none;transition:border-color 0.1s}
+    .form-input:focus,.form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+    .form-input::placeholder{color:var(--text-3)}
+    .form-display{padding:9px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;font-size:13px;color:var(--text-2)}
+    .form-display strong{color:var(--text);font-weight:600;margin-left:4px}
+
+    .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
+    table{width:100%;border-collapse:collapse;font-size:12.5px}
+    thead{background:var(--surface-2)}
+    th{text-align:left;font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:0.05em;padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+    td{padding:11px 12px;border-bottom:1px solid var(--border);color:var(--text-2);font-variant-numeric:tabular-nums}
+    td:first-child,th:first-child{padding-left:16px}
+    td:last-child,th:last-child{padding-right:16px}
+    tr:last-child td{border-bottom:0}
+    tbody tr:hover td{background:var(--surface-2)}
+    .td-strong{color:var(--text);font-weight:500}
+    .td-url{max-width:380px}
+    .td-url a{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;font-size:12px}
+    .empty-row{padding:48px 16px;text-align:center;color:var(--text-3);font-weight:500}
+
+    .pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;background:var(--surface-2);color:var(--text-2);border:1px solid var(--border);font-variant-numeric:tabular-nums}
+    .pill-good{background:var(--good-bg);color:var(--accent-2);border-color:var(--good-border)}
+    .pill-mid{background:var(--warn-bg);color:#fbbf24;border-color:var(--warn-border)}
+    .pill-low{background:var(--bad-bg);color:#f87171;border-color:var(--bad-border)}
+    .pill-neutral{background:var(--surface-2);color:var(--text-3);border-color:var(--border)}
+
+    .rank-edit{display:inline-flex;align-items:center;gap:4px}
+    .rank-input{width:54px;padding:3px 6px;background:var(--surface-2);border:1px solid var(--border-strong);border-radius:4px;font-size:11.5px;color:var(--text);outline:none;font-variant-numeric:tabular-nums;text-align:center}
+    .rank-input:focus{border-color:var(--accent)}
+
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+    .cal-head{padding:8px;text-align:center;font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:0.05em}
+    .cal-head.weekend{color:#fca5a5}
+    .cal-cell{height:90px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:left;display:flex;flex-direction:column;gap:4px;transition:all 0.1s;cursor:pointer}
+    .cal-cell:hover{border-color:var(--border-input)}
+    .cal-cell.has-data{background:var(--surface);border-color:var(--good-border)}
+    .cal-cell.selected{border-color:var(--accent);background:var(--accent-soft)}
+    .cal-cell.empty{visibility:hidden}
+    .cal-day{font-size:11.5px;font-weight:600;color:var(--text-3);align-self:flex-end}
+    .cal-cell.has-data .cal-day{color:var(--text-2)}
+    .cal-cell.selected .cal-day{color:var(--accent-2)}
+    .cal-authors{display:flex;flex-wrap:wrap;gap:3px}
+    .cal-author{display:inline-flex;align-items:center;gap:2px;padding:1px 5px;background:var(--surface);border:1px solid var(--good-border);border-radius:3px;font-size:10.5px;font-weight:600;color:var(--accent-2);font-variant-numeric:tabular-nums}
+    .cal-empty{font-size:10.5px;color:var(--text-4);font-weight:500}
+
+    .chart-wrap{height:170px;margin-top:6px}
+    .chart-wrap svg{width:100%;height:100%;display:block}
+    .dow-chart{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;height:140px;margin-top:8px}
+    .dow-col{display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+    .dow-bar{width:100%;background:linear-gradient(180deg,var(--accent-2),var(--accent));border-radius:3px 3px 0 0;min-height:2px}
+    .dow-bar.weekend{background:linear-gradient(180deg,var(--text-3),var(--text-4))}
+    .dow-label{font-size:11px;color:var(--text-3);font-weight:500}
+    .dow-count{font-size:10.5px;color:var(--text-2);font-weight:600;font-variant-numeric:tabular-nums}
+
+    .emp-list{display:flex;flex-direction:column;gap:10px}
+    .emp-row{display:grid;grid-template-columns:74px 1fr 50px 50px 50px;align-items:center;gap:10px;font-size:13px}
+    .emp-name{font-weight:600;font-size:13px}
+    .emp-bar{height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+    .emp-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:3px;transition:width 0.3s}
+    .emp-stat{text-align:right;color:var(--text-2);font-variant-numeric:tabular-nums;font-size:12.5px}
+    .emp-stat strong{color:var(--text);font-weight:600}
+
+    .kw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+    .kw-card{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;text-align:left;transition:all 0.1s;width:100%}
+    .kw-card:hover{border-color:var(--accent);background:var(--surface-3)}
+    .kw-card-name{font-weight:600;font-size:13px;color:var(--text);margin-bottom:4px}
+    .kw-card-meta{font-size:11.5px;color:var(--text-3);font-variant-numeric:tabular-nums}
+
+    .login-wrap{height:100vh;display:grid;place-items:center;background:radial-gradient(ellipse at top,#1a1a1f 0%,var(--bg) 50%)}
+    .login-card{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px}
+    .login-eyebrow{display:inline-block;padding:3px 10px;background:var(--accent-soft);color:var(--accent-2);border-radius:4px;font-size:11px;font-weight:600;letter-spacing:0.05em;margin-bottom:18px}
+    .login-title{font-size:24px;font-weight:600;letter-spacing:-0.025em;margin-bottom:6px}
+    .login-sub{font-size:13px;color:var(--text-3);margin-bottom:24px}
+
+    .status-line{font-size:12px;color:var(--text-3);font-weight:500;display:inline-flex;align-items:center;gap:6px}
+    .status-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite}
+    .status-dot.error{background:#ef4444;animation:none}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+    @media (max-width:768px){
+      .layout{grid-template-columns:1fr}
+      .sidebar{display:none}
+      main{padding:16px}
+      .kpi-grid{grid-template-columns:repeat(2,1fr)}
+    }
   </style>
 </head>
 <body>
-  <div id="app" class="h-screen overflow-hidden">
-    <div style="padding:40px;font-family:system-ui,sans-serif;color:#0f172a;">
-      <h2 style="font-size:24px;font-weight:800;margin:0 0 8px;">바이럴 마케팅 관리 로딩 중</h2>
-      <p style="margin:0;color:#64748b;">화면이 계속 멈추면 F12 Console의 빨간 오류를 확인하세요.</p>
-    </div>
-  </div>
+  <div id="app"><div style="padding:40px;color:#a1a1aa">로딩 중…</div></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBCbSvsFk74WAdkDYvsk0jg2d-1E_ODCXM",
@@ -39,558 +216,769 @@
       messagingSenderId: "828018722061",
       appId: "1:828018722061:web:4a6ec0391f541419ac5c44"
     };
-
     const firebaseApp = initializeApp(firebaseConfig);
     const db = getFirestore(firebaseApp);
-    const COL = { employees:"viral_employees", keywords:"viral_keywords", records:"viral_records" };
-
+    const COL = { employees:"viral_employees", keywords:"viral_keywords", records:"viral_records", hiddenDefaults:"viral_hidden_defaults" };
     const DEFAULT_EMPLOYEES = ["김태욱","최봉경","김민영","조용준","심규리","최병훈"];
-    const PRIORITY = ["상","중","하"];
     const LOGIN_KEY = "viral_login_name";
 
-    const root = document.getElementById("app");
-    let tab = "작성 등록";
-    let me = localStorage.getItem(LOGIN_KEY) || "";
-    let employees = [];
-    let keywords = [];
-    let records = [];
-    let status = "Firestore 연결 중";
-    let selectedDate = today();
-    let month = today().slice(0,7);
-    let search = "";
-    let keywordCategory = "전체";
-    let keywordSort = "created";
-    let employeeDraft = "";
-    let selectedKeywordForDetail = "";
-    let summaryRange = "30";
-    let summaryEmployee = "전체";
-    let summaryKeywordCat = "전체";
+    const state = {
+      tab: "전체 현황",
+      me: localStorage.getItem(LOGIN_KEY) || "",
+      employees: [], keywords: [], records: [], hiddenDefaults: [],
+      status: "Firestore 연결 중", statusError: false,
+      selectedDate: today(), month: today().slice(0,7),
+      search: "", keywordCategory: "전체", keywordSort: "created",
+      summaryRange: "30", summaryEmployee: "전체", summaryKeywordCat: "전체",
+      forms: {
+        write: { date: today(), keyword: "", url: "", rank: "" },
+        keyword: { keyword: "", category: "", volume: "" },
+        employee: { name: "" }
+      },
+      editingRankId: null, editingRankValue: ""
+    };
 
     function today(){
       const d = new Date();
       return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
     }
     function esc(v){
-      return String(v ?? "").replace(/[&<>'"]/g, function(c){
-        return {"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c];
-      });
+      return String(v ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
     }
     function people(){
-      const list = employees.map(function(e){return e.name;}).filter(Boolean);
-      return list.length ? list : DEFAULT_EMPLOYEES;
+      const hidden = new Set(state.hiddenDefaults.map(h => h.name));
+      const added = state.employees.map(e => e.name).filter(Boolean);
+      const defaults = DEFAULT_EMPLOYEES.filter(n => !hidden.has(n));
+      const seen = new Set();
+      return defaults.concat(added).filter(n => { if(!n || seen.has(n)) return false; seen.add(n); return true; });
     }
-    function setStatus(msg){
-      status = msg;
+    function setStatus(msg, isError=false){
+      state.status = msg;
+      state.statusError = isError;
       render();
-      setTimeout(function(){ if(status === msg){ status = ""; render(); } }, 3000);
+      setTimeout(() => { if(state.status === msg){ state.status = ""; render(); } }, 3000);
     }
-    function ranks(list){
-      return (list || records).map(function(r){return Number(r.rank);}).filter(function(n){return Number.isFinite(n) && n > 0;});
-    }
-    function avgRank(list){
-      const arr = ranks(list || records);
-      return arr.length ? (arr.reduce(function(a,b){return a+b;},0)/arr.length).toFixed(1) : "-";
-    }
-    function mineRecords(){ return records.filter(function(r){return r.employee === me;}); }
-    function filteredRecords(){
-      const q = search.trim().toLowerCase();
-      if(!q) return records;
-      return records.filter(function(r){
-        return [r.keyword,r.employee,r.url].some(function(v){return String(v||"").toLowerCase().includes(q);});
-      });
-    }
-    function keywordDb(){
-      const map = new Map();
-      records.forEach(function(r){
-        if(!r.keyword) return;
-        const cur = map.get(r.keyword) || { keyword:r.keyword, owner:r.employee, posts:0, ranks:[] };
-        cur.posts += 1;
-        cur.owner = r.employee;
-        const n = Number(r.rank);
-        if(Number.isFinite(n) && n > 0) cur.ranks.push(n);
-        map.set(r.keyword, cur);
-      });
-      return Array.from(map.values()).map(function(x){
-        const avg = x.ranks.length ? (x.ranks.reduce(function(a,b){return a+b;},0)/x.ranks.length).toFixed(1) : "-";
-        return { keyword:x.keyword, owner:x.owner, posts:x.posts, avgRank:avg };
-      });
-    }
-    function iconSvg(type){
-      const common = "h-6 w-6";
-      const icons = {
-        post:'<svg class="'+common+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>',
-        key:'<svg class="'+common+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="4"/><path d="M11 11l9 9"/><path d="M16 16l2-2"/><path d="M19 19l2-2"/></svg>',
-        user:'<svg class="'+common+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>',
-        rank:'<svg class="'+common+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>',
-        month:'<svg class="'+common+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>'
-      };
-      return icons[type] || icons.post;
-    }
-    function kpi(label,value,sub,icon){
-      return '<div class="soft-card group relative overflow-hidden rounded-[30px] border border-white bg-white p-6 transition duration-200 hover:-translate-y-1 hover:shadow-2xl">'+
-        '<div class="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-gradient-to-br from-violet-100 via-indigo-50 to-cyan-50"></div>'+
-        '<div class="absolute bottom-0 left-0 h-1.5 w-full bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-400"></div>'+
-        '<div class="relative flex items-start justify-between gap-4"><div class="min-w-0">'+
-        '<div class="ellipsis text-sm font-extrabold text-slate-500">'+esc(label)+'</div>'+
-        '<div class="mt-2 ellipsis text-4xl font-black tracking-tight text-slate-950">'+esc(value)+'</div>'+
-        '<div class="mt-1 ellipsis text-sm font-semibold text-slate-400">'+esc(sub)+'</div></div>'+
-        '<div class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-slate-950 text-white shadow-xl shadow-slate-300/70 ring-4 ring-white/80 transition group-hover:scale-105 group-hover:bg-violet-700">'+iconSvg(icon)+'</div></div></div>';
-    }
-    function panel(content){ return '<section class="soft-card rounded-[28px] border border-white bg-white p-6">'+content+'</section>'; }
-    function sectionTitle(t,d,right){
-      return '<div class="flex min-w-0 items-start justify-between gap-4"><div class="min-w-0"><h2 class="ellipsis text-xl font-extrabold tracking-tight text-slate-950">'+esc(t)+'</h2><p class="mt-1 ellipsis text-sm font-medium text-slate-500">'+esc(d)+'</p></div>'+(right||'')+'</div>';
-    }
-    function input(label,id,ph,type,value){
-      return '<label class="block"><div class="mb-2 ellipsis text-sm font-bold text-slate-700">'+esc(label)+'</div><input id="'+id+'" type="'+(type||'text')+'" value="'+esc(value||'')+'" placeholder="'+esc(ph||'')+'" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"></label>';
-    }
-    function select(label,id,opts,val){
-      return '<label class="block"><div class="mb-2 ellipsis text-sm font-bold text-slate-700">'+esc(label)+'</div><select id="'+id+'" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100">'+opts.map(function(o){return '<option value="'+esc(o)+'" '+(o===val?'selected':'')+'>'+esc(o)+'</option>';}).join('')+'</select></label>';
-    }
-    function formatRank(rank){
-      if(rank === null || rank === undefined || rank === '') return '대기 중';
-      return Number.isFinite(Number(rank)) ? rank+'위' : esc(rank);
-    }
-    function table(headers,rows){
-      return '<div class="mt-5 overflow-hidden rounded-[24px] border border-slate-200 bg-white"><div class="overflow-x-auto"><table class="w-full min-w-[920px] table-fixed text-sm"><thead class="bg-slate-50 text-slate-600"><tr>'+headers.map(function(h){return '<th class="px-4 py-4 text-left font-extrabold"><div class="ellipsis">'+esc(h)+'</div></th>';}).join('')+'</tr></thead><tbody class="divide-y divide-slate-100">'+(rows.length?rows.map(function(r){return '<tr class="hover:bg-violet-50/30">'+r.map(function(c){return '<td class="px-4 py-4 align-middle"><div class="ellipsis">'+c+'</div></td>';}).join('')+'</tr>';}).join(''):'<tr><td colspan="'+headers.length+'" class="px-4 py-12 text-center font-medium text-slate-400">표시할 데이터가 없습니다.</td></tr>')+'</tbody></table></div></div>';
-    }
-    function recordRows(list){
-      return list.map(function(r){
-        const del = r.employee===me ? '<button onclick="deleteRecord(&quot;'+esc(r.id)+'&quot;)" class="rounded-xl bg-rose-50 px-3 py-2 text-xs font-extrabold text-rose-700">삭제</button>' : '-';
-        return [esc(r.date),esc(r.employee),esc(r.keyword),formatRank(r.rank),'<a class="text-violet-700 font-semibold hover:underline" target="_blank" href="'+esc(r.url)+'">'+esc(r.url)+'</a>',del];
-      });
-    }
-
-    function renderLogin(){
-      return '<div class="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,#312e81,#020617_58%)] p-6"><div class="w-full max-w-md rounded-[32px] bg-white p-8 shadow-2xl"><div class="mb-6 inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-extrabold text-violet-700">Viral Marketing System</div><h1 class="text-3xl font-extrabold tracking-tight">로그인</h1><p class="mt-2 text-sm font-medium text-slate-500">선택한 이름으로만 작성 기록이 저장됩니다.</p><div class="mt-7 space-y-4">'+select('이름','loginName',people(),people()[0])+'<button onclick="login()" class="w-full rounded-2xl purple-grad px-4 py-4 text-sm font-extrabold text-white shadow-lg shadow-violet-200">로그인</button></div></div></div>';
-    }
-    function renderWrite(){
-      return '<div class="grid gap-6 xl:grid-cols-[520px_1fr]">'+
-        panel(sectionTitle('게시글 등록',me+' 이름으로만 저장됩니다.')+'<div class="mt-6 space-y-4">'+input('작성일','postDate','','date',selectedDate)+'<div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm"><div class="text-xs font-bold text-slate-500">작성자</div><div class="mt-1 text-base font-extrabold">'+esc(me)+'</div></div>'+input('키워드 *','postKeyword','예: 홍대시포디학원')+input('게시글 URL *','postUrl','https://blog.naver.com/...')+input('현재 노출 순위','postRank','미작성 시 대기 중으로 저장','number')+'<button onclick="saveRecord()" class="w-full rounded-2xl purple-grad px-4 py-4 text-sm font-extrabold text-white shadow-lg shadow-violet-200">작성 기록 저장</button></div>')+
-        panel(sectionTitle('키워드 참고','보관함 키워드를 클릭하면 입력됩니다.')+'<div class="mt-5 grid gap-3">'+(keywords.length?keywords.map(function(k){return '<button onclick="useKeyword(&quot;'+esc(k.id)+'&quot;)" class="group rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left transition hover:border-violet-200 hover:bg-violet-50"><div class="ellipsis font-extrabold text-slate-900 group-hover:text-violet-700">'+esc(k.keyword)+'</div><div class="mt-1 ellipsis text-sm font-medium text-slate-500">'+esc(k.category)+' · 월검색량 '+(k.searchVolume?Number(k.searchVolume).toLocaleString():'-')+'</div></button>';}).join(''):'<div class="rounded-2xl border border-dashed p-8 text-center text-sm font-medium text-slate-400">저장된 키워드가 없습니다.</div>')+'</div>')+
-        '</div>';
-    }
-    function renderKeywords(){
-      const cats = ['전체'].concat(Array.from(new Set(keywords.map(function(k){return k.category;}).filter(Boolean))));
-      let list = keywordCategory==='전체' ? keywords.slice() : keywords.filter(function(k){return k.category===keywordCategory;});
-      if(keywordSort==='volumeDesc') list.sort(function(a,b){return (Number(b.searchVolume)||0)-(Number(a.searchVolume)||0);});
-      if(keywordSort==='volumeAsc') list.sort(function(a,b){return (Number(a.searchVolume)||0)-(Number(b.searchVolume)||0);});
-
-      const keywordStats = list.map(function(k){
-        const written = records.filter(function(r){return r.keyword===k.keyword;});
-        return Object.assign({}, k, { writeCount: written.length, written: written });
-      });
-      const topWritten = keywordStats.slice().sort(function(a,b){return b.writeCount-a.writeCount;}).slice(0,5);
-      const maxCount = Math.max(1, ...keywordStats.map(function(k){return k.writeCount;}));
-      const totalVolume = keywordStats.reduce(function(sum,k){return sum + (Number(k.searchVolume)||0);},0);
-      const avgVolume = keywordStats.length ? Math.round(totalVolume / keywordStats.length) : 0;
-      const selectedDetailRows = selectedKeywordForDetail ? records.filter(function(r){return r.keyword===selectedKeywordForDetail;}) : [];
-
-      const rows = keywordStats.map(function(k){
-        return [
-          '<div class="font-extrabold text-slate-950">'+esc(k.keyword)+'</div>',
-          '<span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-extrabold text-slate-600">'+esc(k.category||'미분류')+'</span>',
-          k.searchVolume?'<span class="font-black text-violet-700">'+Number(k.searchVolume).toLocaleString()+'</span>':'-',
-          '<button onclick="showKeywordDetail(&quot;'+esc(k.keyword)+'&quot;)" class="rounded-xl bg-indigo-50 px-3 py-2 text-xs font-extrabold text-indigo-700 hover:bg-indigo-100">'+k.writeCount+'건</button>',
-          '<button onclick="openBlackkiwi(&quot;'+esc(k.keyword)+'&quot;)" class="rounded-xl bg-violet-50 px-3 py-2 text-xs font-extrabold text-violet-700">검색량 확인</button> <button onclick="useKeyword(\''+k.id+'\')" class="rounded-xl bg-slate-950 px-3 py-2 text-xs font-extrabold text-white">사용</button> <button onclick="deleteKeyword(&quot;'+esc(k.id)+'&quot;)" class="rounded-xl bg-rose-50 px-3 py-2 text-xs font-extrabold text-rose-700">삭제</button>'
-        ];
-      });
-
-      const topHtml = topWritten.length ? topWritten.map(function(k){
-        const width = Math.max(4, Math.round((k.writeCount/maxCount)*100));
-        return '<button onclick="showKeywordDetail(\''+esc(k.keyword)+'\')" class="w-full rounded-2xl bg-slate-50 p-4 text-left transition hover:bg-violet-50"><div class="flex items-center justify-between gap-3"><div class="min-w-0"><div class="ellipsis font-extrabold text-slate-950">'+esc(k.keyword)+'</div><div class="mt-1 text-xs font-bold text-slate-400">월검색량 '+(k.searchVolume?Number(k.searchVolume).toLocaleString():'-')+'</div></div><div class="shrink-0 rounded-xl bg-white px-3 py-2 text-sm font-black text-violet-700 shadow-sm">'+k.writeCount+'건</div></div><div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-200"><div class="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400" style="width:'+width+'%"></div></div></button>';
-      }).join('') : '<div class="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-sm font-bold text-slate-400">아직 작성된 키워드가 없습니다.</div>';
-
-      const detailHtml = selectedKeywordForDetail ? panel(sectionTitle(selectedKeywordForDetail+' 작성 이력','누가 언제 작성했는지 확인합니다.','<button onclick="showKeywordDetail(\'\')" class="rounded-xl bg-slate-100 px-3 py-2 text-xs font-extrabold text-slate-600">닫기</button>')+table(['작성일','작성자','노출 순위','URL','작업'], selectedDetailRows.map(function(r){
-        const del = r.employee===me ? '<button onclick="deleteRecord(\''+r.id+'\')" class="rounded-xl bg-rose-50 px-3 py-2 text-xs font-extrabold text-rose-700">삭제</button>' : '-';
-        return [esc(r.date),esc(r.employee),formatRank(r.rank),'<a class="text-violet-700 font-semibold hover:underline" target="_blank" href="'+esc(r.url)+'">'+esc(r.url)+'</a>',del];
-      }))) : '';
-
-      return '<div class="space-y-6">'+
-        '<div class="grid gap-4 md:grid-cols-3">'+
-          kpi('보관 키워드',keywords.length+'개','전체 저장 키워드','key')+
-          kpi('총 월검색량',totalVolume.toLocaleString(),'현재 필터 기준','rank')+
-          kpi('평균 검색량',avgVolume.toLocaleString(),'키워드당 평균','month')+
-        '</div>'+
-        '<div class="grid gap-6 xl:grid-cols-[420px_1fr]">'+
-          panel(sectionTitle('키워드 저장','블랙키위에서 검색량 확인 후 월 검색량을 입력합니다.')+'<div class="mt-6 space-y-4">'+input('키워드 *','keyKeyword','예: 영상편집학원')+'<button onclick="openBlackkiwiFromInput()" class="w-full rounded-2xl bg-violet-50 px-4 py-3 text-sm font-extrabold text-violet-700">블랙키위에서 검색량 확인</button>'+input('카테고리','keyCategory','예: 영상 / 디자인 / 자격증 / 웹툰')+input('월 검색량','keyVolume','예: 3200','number')+'<button onclick="saveKeyword()" class="w-full rounded-2xl purple-grad px-4 py-4 text-sm font-extrabold text-white shadow-lg shadow-violet-200">키워드 저장</button></div>')+
-          panel(sectionTitle('많이 작성되는 키워드 TOP 5','작성 기록 기준 자동 집계')+'<div class="mt-5 space-y-3">'+topHtml+'</div>')+
-        '</div>'+
-        panel(sectionTitle('키워드 보관함','카테고리별 확인과 월 검색량 정렬이 가능합니다.','<select onchange="setKeywordSort(this.value)" class="rounded-2xl border px-3 py-2 text-sm font-bold"><option value="created" '+(keywordSort==='created'?'selected':'')+'>최신순</option><option value="volumeDesc" '+(keywordSort==='volumeDesc'?'selected':'')+'>월검색량 높은순</option><option value="volumeAsc" '+(keywordSort==='volumeAsc'?'selected':'')+'>월검색량 낮은순</option></select>')+'<div class="mt-5 flex flex-wrap gap-2">'+cats.map(function(c){return '<button onclick="setKeywordCategory(&quot;'+esc(c)+'&quot;)" class="rounded-full px-4 py-2 text-sm font-extrabold '+(keywordCategory===c?'purple-grad text-white':'bg-slate-100 text-slate-600 hover:bg-slate-200')+'">'+esc(c)+'</button>';}).join('')+'</div>'+table(['키워드','카테고리','월 검색량','작성 수','작업'],rows))+
-        detailHtml+
-        '</div>';
-    }
-    function renderCalendar(){
-      const parts = month.split('-').map(Number);
-      const total = new Date(parts[0],parts[1],0).getDate();
-      const blank = new Date(month+'-01').getDay();
-      let cells = '';
-      for(let i=0;i<blank;i++) cells += '<div></div>';
-      for(let d=1;d<=total;d++){
-        const date = month+'-'+String(d).padStart(2,'0');
-        const list = records.filter(function(r){return r.date===date;});
-        cells += '<button onclick="setDate(\''+date+'\')" class="h-24 rounded-2xl border p-3 text-left transition '+(selectedDate===date?'border-violet-500 bg-violet-100 shadow-lg shadow-violet-100':list.length?'border-violet-200 bg-violet-50':'border-slate-200 bg-white hover:bg-slate-50')+'"><div class="text-right text-xs font-bold text-slate-400">'+d+'</div>'+(list.length?'<div class="mt-8 rounded-xl bg-white px-2 py-1 text-xs font-extrabold text-violet-700 ellipsis">작성 '+list.length+'건</div>':'<div class="mt-8 text-xs font-medium text-slate-300">기록 없음</div>')+'</button>';
-      }
-      return '<div class="space-y-6">'+panel(sectionTitle('작성 캘린더','월 단위 작성 기록','<div class="flex gap-2"><input type="month" value="'+month+'" onchange="setMonth(this.value)" class="rounded-2xl border px-3 py-2 text-sm"><input type="date" value="'+selectedDate+'" onchange="setDate(this.value)" class="rounded-2xl border px-3 py-2 text-sm"></div>')+'<div class="mt-6 grid grid-cols-7 gap-2 text-xs">'+['일','월','화','수','목','금','토'].map(function(x){return '<div class="text-center font-extrabold text-slate-500">'+x+'</div>';}).join('')+cells+'</div>')+panel(sectionTitle(selectedDate+' 작성 기록','본인 기록만 삭제할 수 있습니다.')+table(['작성일','작성자','키워드','노출 순위','URL','작업'],recordRows(records.filter(function(r){return r.date===selectedDate;}))))+'</div>';
-    }
-    function renderMy(){
-      const mine = mineRecords();
-      return '<div class="space-y-6"><div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">'+kpi(me+' 작성 수',mine.length+'건','누적','post')+kpi(me+' 평균 순위',avgRank(mine)+'위','유효 순위 기준','rank')+kpi(me+' 키워드 수',new Set(mine.map(function(r){return r.keyword;})).size+'개','중복 제외','key')+kpi('이번 달 작성',mine.filter(function(r){return String(r.date||'').startsWith(month);}).length+'건',month,'month')+'</div>'+panel(sectionTitle(me+'의 최근 등록','내 작성 기록만 표시')+table(['작성일','작성자','키워드','노출 순위','URL','작업'],recordRows(mine)))+'</div>';
-    }
-    function renderAll(){ return panel(sectionTitle('전체 업무 기록','검색 가능','<input placeholder="검색" value="'+esc(search)+'" oninput="setSearch(this.value)" class="rounded-2xl border px-4 py-2 text-sm outline-none focus:ring-4 focus:ring-violet-100">')+table(['작성일','작성자','키워드','노출 순위','URL','작업'],recordRows(filteredRecords()))); }
-    function renderEmployees(){
-      const list = employees.length ? employees : DEFAULT_EMPLOYEES.map(function(name,i){return {id:'default-'+i,name:name,isDefault:true};});
-      const rows = list.map(function(e){
-        const action = e.name===me ? '<span class="text-slate-400 text-xs font-bold">삭제 불가</span>' : '<button onclick="deleteEmployee(\''+e.id+'\',\''+esc(e.name)+'\','+(e.isDefault?'true':'false')+')" class="rounded-xl bg-rose-50 px-3 py-2 text-xs font-extrabold text-rose-700 hover:bg-rose-100">삭제</button>';
-        return [esc(e.name),e.name===me?'현재 로그인':(e.isDefault?'기본 계정':'추가 계정'),action];
-      });
-      return '<div class="grid gap-6 xl:grid-cols-[420px_1fr]">'+panel(sectionTitle('직원 추가','로그인 이름 목록 관리')+'<div class="mt-6 space-y-4"><label class="block"><div class="mb-2 ellipsis text-sm font-bold text-slate-700">직원 이름</div><input id="empName" type="text" value="'+esc(employeeDraft)+'" oninput="setEmployeeDraft(this.value)" placeholder="예: 홍길동" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-violet-400 focus:ring-violet-100"></label><button onclick="saveEmployee()" class="w-full rounded-2xl purple-grad px-4 py-4 text-sm font-extrabold text-white">직원 추가</button></div>')+panel(sectionTitle('직원 목록','삭제하면 로그인 목록에서 제외됩니다.')+table(['이름','상태','작업'],rows))+'</div>';
+    function shortName(name){
+      if(!name) return "";
+      if(/^[가-힣]+$/.test(name)) return name.length >= 3 ? name.slice(-2) : name;
+      return name.split(/\s+/).map(p => p[0]).join("").toUpperCase().slice(0,2);
     }
     function rangeStartDate(){
-      if(summaryRange==='all') return '0000-00-00';
-      const days = Number(summaryRange) || 30;
+      if(state.summaryRange === "all") return "0000-00-00";
+      const days = Number(state.summaryRange) || 30;
       const d = new Date();
       d.setDate(d.getDate() - (days-1));
-      return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
     }
-    function summaryFilteredRecords(){
+    function summaryFiltered(){
       const start = rangeStartDate();
-      const catKeywords = summaryKeywordCat==='전체' ? null : new Set(keywords.filter(function(k){return k.category===summaryKeywordCat;}).map(function(k){return k.keyword;}));
-      return records.filter(function(r){
-        if((r.date||'') < start) return false;
-        if(summaryEmployee!=='전체' && r.employee!==summaryEmployee) return false;
-        if(catKeywords && !catKeywords.has(r.keyword)) return false;
+      const catKw = state.summaryKeywordCat === "전체" ? null : new Set(state.keywords.filter(k => k.category === state.summaryKeywordCat).map(k => k.keyword));
+      return state.records.filter(r => {
+        if((r.date || "") < start) return false;
+        if(state.summaryEmployee !== "전체" && r.employee !== state.summaryEmployee) return false;
+        if(catKw && !catKw.has(r.keyword)) return false;
         return true;
       });
     }
-    function rankColor(rank){
+    function rankPillClass(rank){
       const n = Number(rank);
-      if(!Number.isFinite(n) || n<=0) return 'bg-slate-100 text-slate-500';
-      if(n<=3) return 'bg-emerald-100 text-emerald-700';
-      if(n<=10) return 'bg-amber-100 text-amber-700';
-      return 'bg-rose-100 text-rose-700';
+      if(!Number.isFinite(n) || n <= 0) return "pill-neutral";
+      if(n <= 3) return "pill-good";
+      if(n <= 10) return "pill-mid";
+      return "pill-low";
+    }
+    function formatRank(rank){
+      if(rank === null || rank === undefined || rank === "") return "대기";
+      return Number.isFinite(Number(rank)) ? rank+"위" : esc(rank);
+    }
+    function shortenUrl(url){
+      try{
+        const u = new URL(url);
+        const path = u.pathname + u.search;
+        return u.host + (path.length > 30 ? path.slice(0,28)+"…" : path);
+      }catch(_){ return url.length > 50 ? url.slice(0,48)+"…" : url; }
     }
 
-    function lineChartSvg(buckets){
-      // buckets: [{label, count}]
-      if(!buckets.length) return '<div class="rounded-2xl border border-dashed p-12 text-center text-sm font-medium text-slate-400">기간 내 데이터 없음</div>';
-      const W = 760, H = 240, PL = 40, PR = 16, PT = 20, PB = 36;
-      const max = Math.max(1, ...buckets.map(function(b){return b.count;}));
-      const stepX = (W - PL - PR) / Math.max(1, buckets.length - 1);
-      const points = buckets.map(function(b,i){
-        const x = PL + i*stepX;
-        const y = PT + (H - PT - PB) * (1 - b.count/max);
-        return {x:x, y:y, label:b.label, count:b.count};
+    const ICONS = {
+      write: '<svg viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>',
+      key: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+      cal: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+      user: '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+      chart: '<svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 14 4-4 4 4 5-5"/></svg>',
+      dash: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+      team: '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>'
+    };
+
+    function renderLogin(){
+      const opts = people().map(n => `<option value="${esc(n)}" ${n === people()[0]?"selected":""}>${esc(n)}</option>`).join("");
+      return `<div class="login-wrap"><div class="login-card">
+        <div class="login-eyebrow">VIRAL MARKETING</div>
+        <div class="login-title">로그인</div>
+        <div class="login-sub">선택한 이름으로만 작성 기록이 저장됩니다.</div>
+        <div class="form-field">
+          <label class="form-label">이름</label>
+          <select class="form-select" id="loginName">${opts}</select>
+        </div>
+        <button class="btn btn-primary" style="width:100%;padding:11px;font-size:14px" onclick="window.app.login()">로그인</button>
+      </div></div>`;
+    }
+
+    function renderShell(content){
+      const tabs = [
+        { id:"작성 등록", icon:"write", section:"Workspace" },
+        { id:"키워드 보관함", icon:"key", section:"Workspace", badge: state.keywords.length || null },
+        { id:"작성 캘린더", icon:"cal", section:"Workspace" },
+        { id:"내 성과", icon:"user", section:"Analytics" },
+        { id:"업무 기록", icon:"chart", section:"Analytics" },
+        { id:"전체 현황", icon:"dash", section:"Analytics" },
+        { id:"직원 관리", icon:"team", section:"설정" }
+      ];
+      let nav = "";
+      let lastSection = "";
+      tabs.forEach(t => {
+        if(t.section !== lastSection){
+          nav += `<div class="nav-section">${esc(t.section)}</div>`;
+          lastSection = t.section;
+        }
+        const badge = t.badge ? `<span class="badge">${t.badge}</span>` : "";
+        nav += `<button class="nav-item ${state.tab === t.id ? "active":""}" onclick="window.app.setTab('${esc(t.id)}')">${ICONS[t.icon]}<span>${esc(t.id)}</span>${badge}</button>`;
       });
-      const path = points.map(function(p,i){return (i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1);}).join(' ');
-      const area = path + ' L '+points[points.length-1].x.toFixed(1)+' '+(H-PB)+' L '+points[0].x.toFixed(1)+' '+(H-PB)+' Z';
-      const yTicks = [0, Math.ceil(max/2), max];
-      const yLines = yTicks.map(function(v){
-        const y = PT + (H - PT - PB) * (1 - v/max);
-        return '<line x1="'+PL+'" y1="'+y+'" x2="'+(W-PR)+'" y2="'+y+'" stroke="#e2e8f0" stroke-dasharray="3 4"/><text x="'+(PL-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="#94a3b8" font-weight="700">'+v+'</text>';
-      }).join('');
-      const xLabelStep = Math.max(1, Math.ceil(buckets.length / 8));
-      const xLabels = points.map(function(p,i){
-        if(i % xLabelStep !== 0 && i !== points.length-1) return '';
-        return '<text x="'+p.x+'" y="'+(H-PB+18)+'" text-anchor="middle" font-size="10" fill="#64748b" font-weight="600">'+esc(p.label)+'</text>';
-      }).join('');
-      const dots = points.map(function(p){
-        return '<circle cx="'+p.x+'" cy="'+p.y+'" r="3.5" fill="#7c3aed" stroke="white" stroke-width="2"><title>'+esc(p.label)+': '+p.count+'건</title></circle>';
-      }).join('');
-      return '<svg viewBox="0 0 '+W+' '+H+'" class="w-full" preserveAspectRatio="xMidYMid meet">'+
-        '<defs><linearGradient id="lcG" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.25"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></linearGradient></defs>'+
-        yLines+
-        '<path d="'+area+'" fill="url(#lcG)"/>'+
-        '<path d="'+path+'" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+
-        dots + xLabels +
-        '</svg>';
+
+      return `<div class="layout">
+        <aside class="sidebar">
+          <div class="brand"><div class="brand-mark">V</div><div class="brand-name">Viral Marketing</div></div>
+          ${nav}
+          <div class="user-card">
+            <div class="user-row">
+              <div class="avatar">${esc(shortName(state.me))}</div>
+              <div style="min-width:0">
+                <div class="user-name">${esc(state.me)}</div>
+                <div class="user-role">SBS Academy</div>
+              </div>
+            </div>
+            <button class="logout-btn" onclick="window.app.logout()">로그아웃</button>
+          </div>
+        </aside>
+        <main>${content}</main>
+      </div>`;
     }
 
-    function buildDailyBuckets(list){
+    function pageHeader(title, sub, actions){
+      const status = state.status ? `<div class="status-line"><span class="status-dot ${state.statusError?"error":""}"></span>${esc(state.status)}</div>` : "";
+      return `<div class="header">
+        <div style="min-width:0">
+          <div class="page-title">${esc(title)}</div>
+          <div class="page-sub">${sub || status}</div>
+        </div>
+        <div class="header-actions">${actions || ""}</div>
+      </div>`;
+    }
+
+    function recordRow(r){
+      const isEditing = state.editingRankId === r.id;
+      const rankCell = isEditing
+        ? `<span class="rank-edit"><input class="rank-input" type="number" value="${esc(state.editingRankValue)}" id="rankInput_${esc(r.id)}" oninput="window.app.setEditingRankValue(this.value)" onkeydown="if(event.key==='Enter')window.app.saveRank('${esc(r.id)}'); if(event.key==='Escape')window.app.cancelRank()"><button class="btn btn-primary btn-sm" onclick="window.app.saveRank('${esc(r.id)}')">저장</button><button class="btn-ghost btn-sm" onclick="window.app.cancelRank()">취소</button></span>`
+        : `<span class="pill ${rankPillClass(r.rank)}" style="cursor:pointer" onclick="window.app.startEditRank('${esc(r.id)}','${esc(r.rank||"")}')">${formatRank(r.rank)} ✎</span>`;
+      const actions = r.employee === state.me
+        ? `<button class="btn-danger" onclick="window.app.deleteRecord('${esc(r.id)}')">삭제</button>`
+        : `<span style="color:var(--text-4);font-size:11px">-</span>`;
+      return `<tr>
+        <td class="td-strong">${esc(r.date)}</td>
+        <td>${esc(r.employee)}</td>
+        <td>${esc(r.keyword)}</td>
+        <td>${rankCell}</td>
+        <td class="td-url"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(shortenUrl(r.url))}</a></td>
+        <td style="text-align:right">${actions}</td>
+      </tr>`;
+    }
+
+    function renderWrite(){
+      const f = state.forms.write;
+      const recentRecords = state.records.filter(r => r.employee === state.me).slice(0,5);
+      const recentRows = recentRecords.length ? recentRecords.map(r => `
+        <tr>
+          <td class="td-strong">${esc(r.date)}</td>
+          <td>${esc(r.keyword)}</td>
+          <td><span class="pill ${rankPillClass(r.rank)}">${formatRank(r.rank)}</span></td>
+          <td class="td-url"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(shortenUrl(r.url))}</a></td>
+        </tr>`).join("") : `<tr><td colspan="4" class="empty-row">아직 작성한 기록이 없습니다.</td></tr>`;
+
+      const kwSuggestions = state.keywords.slice(0,12).map(k => `
+        <button class="kw-card" onclick="window.app.useKeyword('${esc(k.id)}')">
+          <div class="kw-card-name">${esc(k.keyword)}</div>
+          <div class="kw-card-meta">${esc(k.category||"미분류")} · ${k.searchVolume?Number(k.searchVolume).toLocaleString()+"회":"-"}</div>
+        </button>`).join("");
+
+      return renderShell(pageHeader("작성 등록", state.status?"":"새 작성 기록을 추가합니다", "") + `
+        <div class="grid-write">
+          <div class="panel">
+            <div class="panel-head"><div><div class="panel-title">게시글 등록</div><div class="panel-sub">${esc(state.me)} 이름으로 저장됩니다</div></div></div>
+            <div class="form-field"><label class="form-label">작성일</label><input class="form-input" type="date" value="${esc(f.date)}" oninput="window.app.formInput('write','date',this.value)"></div>
+            <div class="form-field"><label class="form-label">작성자</label><div class="form-display">로그인:<strong>${esc(state.me)}</strong></div></div>
+            <div class="form-field"><label class="form-label">키워드 *</label><input class="form-input" id="writeKeyword" type="text" value="${esc(f.keyword)}" placeholder="예: 홍대시포디학원" oninput="window.app.formInput('write','keyword',this.value)"></div>
+            <div class="form-field"><label class="form-label">게시글 URL *</label><input class="form-input" type="text" value="${esc(f.url)}" placeholder="https://blog.naver.com/..." oninput="window.app.formInput('write','url',this.value)"></div>
+            <div class="form-field"><label class="form-label">현재 노출 순위 (선택)</label><input class="form-input" type="number" value="${esc(f.rank)}" placeholder="미입력 시 '대기'로 저장" oninput="window.app.formInput('write','rank',this.value)"></div>
+            <button class="btn btn-primary" style="width:100%;padding:11px" onclick="window.app.saveRecord()">+ 작성 기록 저장</button>
+          </div>
+          <div class="stack-md">
+            <div class="panel">
+              <div class="panel-head"><div><div class="panel-title">키워드 빠른 입력</div><div class="panel-sub">보관함 키워드를 클릭하면 자동 입력됩니다</div></div></div>
+              ${kwSuggestions ? `<div class="kw-grid">${kwSuggestions}</div>` : `<div class="empty-row" style="padding:32px 0">저장된 키워드가 없습니다.</div>`}
+            </div>
+            <div class="panel">
+              <div class="panel-head"><div><div class="panel-title">최근 내가 등록한 기록</div><div class="panel-sub">최근 5건</div></div></div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>작성일</th><th>키워드</th><th>순위</th><th>URL</th></tr></thead>
+                  <tbody>${recentRows}</tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>`);
+    }
+
+    function renderKeywords(){
+      const f = state.forms.keyword;
+      const cats = ["전체"].concat(Array.from(new Set(state.keywords.map(k => k.category).filter(Boolean))));
+      let list = state.keywordCategory === "전체" ? state.keywords.slice() : state.keywords.filter(k => k.category === state.keywordCategory);
+      if(state.keywordSort === "volumeDesc") list.sort((a,b) => (Number(b.searchVolume)||0) - (Number(a.searchVolume)||0));
+      else if(state.keywordSort === "volumeAsc") list.sort((a,b) => (Number(a.searchVolume)||0) - (Number(b.searchVolume)||0));
+
+      const enriched = list.map(k => {
+        const written = state.records.filter(r => r.keyword === k.keyword);
+        return Object.assign({}, k, { writeCount: written.length });
+      });
+      const totalVol = enriched.reduce((s,k) => s + (Number(k.searchVolume)||0), 0);
+      const avgVol = enriched.length ? Math.round(totalVol / enriched.length) : 0;
+
+      const rows = enriched.length ? enriched.map(k => `
+        <tr>
+          <td class="td-strong">${esc(k.keyword)}</td>
+          <td><span class="pill">${esc(k.category||"미분류")}</span></td>
+          <td>${k.searchVolume ? `<span class="td-strong">${Number(k.searchVolume).toLocaleString()}</span>` : "-"}</td>
+          <td><span class="pill pill-good">${k.writeCount}건</span></td>
+          <td style="text-align:right">
+            <button class="btn btn-ghost btn-sm" onclick="window.app.openBlackkiwi('${esc(k.keyword)}')">검색량</button>
+            <button class="btn btn-ghost btn-sm" onclick="window.app.useKeyword('${esc(k.id)}')">사용</button>
+            <button class="btn-danger" onclick="window.app.deleteKeyword('${esc(k.id)}')">삭제</button>
+          </td>
+        </tr>`).join("") : `<tr><td colspan="5" class="empty-row">저장된 키워드가 없습니다.</td></tr>`;
+
+      const catChips = cats.map(c => `<button class="filter-chip ${state.keywordCategory===c?"active":""}" onclick="window.app.setKeywordCategory('${esc(c)}')">${esc(c)}</button>`).join("");
+
+      return renderShell(pageHeader("키워드 보관함", state.status?"":"바이럴 키워드를 모아두고 관리합니다") + `
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-label">보관 키워드</div><div class="kpi-value">${state.keywords.length}</div><div class="kpi-sub">전체 저장 키워드</div></div>
+          <div class="kpi"><div class="kpi-label">총 월 검색량</div><div class="kpi-value">${totalVol.toLocaleString()}</div><div class="kpi-sub">현재 필터 기준</div></div>
+          <div class="kpi"><div class="kpi-label">평균 검색량</div><div class="kpi-value">${avgVol.toLocaleString()}</div><div class="kpi-sub">키워드당 평균</div></div>
+          <div class="kpi"><div class="kpi-label">카테고리</div><div class="kpi-value">${cats.length-1}</div><div class="kpi-sub">분류된 카테고리</div></div>
+        </div>
+        <div class="grid-2-eq" style="margin-bottom:18px">
+          <div class="panel">
+            <div class="panel-head"><div><div class="panel-title">키워드 추가</div><div class="panel-sub">블랙키위로 검색량 확인 후 입력</div></div></div>
+            <div class="form-field"><label class="form-label">키워드 *</label><input class="form-input" type="text" value="${esc(f.keyword)}" placeholder="예: 영상편집학원" oninput="window.app.formInput('keyword','keyword',this.value)"></div>
+            <div class="form-field"><button class="btn" style="width:100%" onclick="window.app.openBlackkiwiFromInput()">→ 블랙키위에서 검색량 확인</button></div>
+            <div class="form-field"><label class="form-label">카테고리</label><input class="form-input" type="text" value="${esc(f.category)}" placeholder="예: 영상 / 디자인 / 자격증" oninput="window.app.formInput('keyword','category',this.value)"></div>
+            <div class="form-field"><label class="form-label">월 검색량</label><input class="form-input" type="number" value="${esc(f.volume)}" placeholder="예: 3200" oninput="window.app.formInput('keyword','volume',this.value)"></div>
+            <button class="btn btn-primary" style="width:100%;padding:11px" onclick="window.app.saveKeyword()">+ 키워드 저장</button>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><div class="panel-title">사용 안내</div><div class="panel-sub">키워드 보관함 활용법</div></div></div>
+            <div style="font-size:12.5px;color:var(--text-2);line-height:1.7">
+              <div style="margin-bottom:10px"><span style="color:var(--accent-2);font-weight:600">①</span> 키워드를 추가하면 작성 등록 화면에서 클릭 한 번으로 입력됩니다.</div>
+              <div style="margin-bottom:10px"><span style="color:var(--accent-2);font-weight:600">②</span> 카테고리를 정해두면 전체 현황에서 카테고리별 성과를 비교할 수 있습니다.</div>
+              <div style="margin-bottom:10px"><span style="color:var(--accent-2);font-weight:600">③</span> 월 검색량은 블랙키위 등에서 확인 후 입력합니다. ROI 정렬에 사용됩니다.</div>
+              <div><span style="color:var(--accent-2);font-weight:600">④</span> 작성 수는 자동 집계됩니다 — 같은 키워드로 여러 번 등록하면 누적됩니다.</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <div><div class="panel-title">키워드 목록</div><div class="panel-sub">카테고리 필터와 검색량 정렬 가능</div></div>
+            <select class="filter-select" style="background:var(--surface-2);border:1px solid var(--border);padding:6px 10px;border-radius:6px" onchange="window.app.setKeywordSort(this.value)">
+              <option value="created" ${state.keywordSort==="created"?"selected":""}>최신순</option>
+              <option value="volumeDesc" ${state.keywordSort==="volumeDesc"?"selected":""}>검색량 ↓</option>
+              <option value="volumeAsc" ${state.keywordSort==="volumeAsc"?"selected":""}>검색량 ↑</option>
+            </select>
+          </div>
+          <div class="filter-row" style="margin-bottom:14px">${catChips}</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>키워드</th><th>카테고리</th><th>월 검색량</th><th>작성 수</th><th style="text-align:right">작업</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </div>`);
+    }
+
+    function renderCalendar(){
+      const [y, m] = state.month.split("-").map(Number);
+      const total = new Date(y, m, 0).getDate();
+      const blank = new Date(state.month + "-01").getDay();
+      const weekdays = ["일","월","화","수","목","금","토"];
+      let cells = "";
+      weekdays.forEach((w, i) => cells += `<div class="cal-head ${i===0||i===6?"weekend":""}">${w}</div>`);
+      for(let i=0;i<blank;i++) cells += `<div class="cal-cell empty"></div>`;
+      for(let d=1;d<=total;d++){
+        const date = state.month + "-" + String(d).padStart(2,"0");
+        const list = state.records.filter(r => r.date === date);
+        const byAuthor = {};
+        list.forEach(r => { if(r.employee) byAuthor[r.employee] = (byAuthor[r.employee]||0)+1; });
+        const authors = Object.keys(byAuthor).map(name => {
+          const c = byAuthor[name];
+          return `<span class="cal-author">${esc(shortName(name))}${c>1?` <span style="color:var(--text-3)">${c}</span>`:""}</span>`;
+        }).join("");
+        const sel = state.selectedDate === date;
+        const klass = `cal-cell ${list.length?"has-data":""} ${sel?"selected":""}`;
+        const body = list.length ? `<div class="cal-authors">${authors}</div>` : `<div class="cal-empty">기록 없음</div>`;
+        cells += `<button class="${klass}" onclick="window.app.setDate('${date}')"><div class="cal-day">${d}</div>${body}</button>`;
+      }
+
+      const dayList = state.records.filter(r => r.date === state.selectedDate);
+      const dayRows = dayList.length ? dayList.map(r => recordRow(r)).join("") : `<tr><td colspan="6" class="empty-row">${esc(state.selectedDate)} 기록이 없습니다.</td></tr>`;
+
+      return renderShell(pageHeader("작성 캘린더", state.status?"":"월 단위 작성 기록 시각화") + `
+        <div class="panel" style="margin-bottom:18px">
+          <div class="panel-head">
+            <div><div class="panel-title">${esc(state.month)} 캘린더</div><div class="panel-sub">날짜 클릭 시 아래 표 갱신 · 작성자 이름이 표시됩니다</div></div>
+            <div style="display:flex;gap:8px">
+              <input class="form-input" type="month" value="${esc(state.month)}" style="width:auto;padding:6px 10px" oninput="window.app.setMonth(this.value)">
+              <input class="form-input" type="date" value="${esc(state.selectedDate)}" style="width:auto;padding:6px 10px" oninput="window.app.setDate(this.value)">
+            </div>
+          </div>
+          <div class="cal-grid">${cells}</div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><div class="panel-title">${esc(state.selectedDate)} 작성 기록</div><div class="panel-sub">노출 순위 클릭으로 즉시 수정 · 본인 기록만 삭제 가능</div></div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>작성일</th><th>작성자</th><th>키워드</th><th>노출 순위</th><th>URL</th><th style="text-align:right">작업</th></tr></thead>
+              <tbody>${dayRows}</tbody>
+            </table>
+          </div>
+        </div>`);
+    }
+
+    function renderMy(){
+      const mine = state.records.filter(r => r.employee === state.me);
+      const validRanks = mine.map(r => Number(r.rank)).filter(n => Number.isFinite(n) && n>0);
+      const avg = validRanks.length ? (validRanks.reduce((a,b) => a+b, 0)/validRanks.length).toFixed(1) : "-";
+      const top10 = mine.filter(r => { const n = Number(r.rank); return Number.isFinite(n) && n>0 && n<=10; }).length;
+      const thisMonth = mine.filter(r => String(r.date||"").startsWith(state.month)).length;
+      const rows = mine.length ? mine.slice(0,30).map(r => recordRow(r)).join("") : `<tr><td colspan="6" class="empty-row">아직 작성한 기록이 없습니다.</td></tr>`;
+
+      return renderShell(pageHeader("내 성과", state.status?"":esc(state.me)+" 의 작성 성과") + `
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-label">전체 작성</div><div class="kpi-value">${mine.length}</div><div class="kpi-sub">누적 건수</div></div>
+          <div class="kpi"><div class="kpi-label">평균 노출 순위</div><div class="kpi-value">${avg}${avg!=="-"?"위":""}</div><div class="kpi-sub">유효 순위 기준</div></div>
+          <div class="kpi"><div class="kpi-label">10위 내 노출</div><div class="kpi-value">${top10}</div><div class="kpi-sub">상위 노출 성과</div></div>
+          <div class="kpi"><div class="kpi-label">이번 달 작성</div><div class="kpi-value">${thisMonth}</div><div class="kpi-sub">${esc(state.month)}</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><div class="panel-title">최근 내 기록</div><div class="panel-sub">최대 30건 표시 · 노출 순위 클릭으로 수정</div></div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>작성일</th><th>작성자</th><th>키워드</th><th>노출 순위</th><th>URL</th><th style="text-align:right">작업</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </div>`);
+    }
+
+    function renderAll(){
+      const q = state.search.trim().toLowerCase();
+      const list = q ? state.records.filter(r => [r.keyword, r.employee, r.url].some(v => String(v||"").toLowerCase().includes(q))) : state.records;
+      const rows = list.length ? list.map(r => recordRow(r)).join("") : `<tr><td colspan="6" class="empty-row">${q?"검색 결과 없음":"기록 없음"}</td></tr>`;
+      return renderShell(pageHeader("업무 기록", state.status?"":"전체 작성 기록 검색") + `
+        <div class="panel">
+          <div class="panel-head">
+            <div><div class="panel-title">전체 기록 (${list.length}건)</div><div class="panel-sub">키워드 · 작성자 · URL 검색 · 노출 순위 클릭으로 수정</div></div>
+            <input class="form-input" type="text" placeholder="검색…" value="${esc(state.search)}" style="width:240px" oninput="window.app.setSearch(this.value)">
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>작성일</th><th>작성자</th><th>키워드</th><th>노출 순위</th><th>URL</th><th style="text-align:right">작업</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </div>`);
+    }
+
+    function renderEmployees(){
+      const f = state.forms.employee;
+      const hidden = new Set(state.hiddenDefaults.map(h => h.name));
+      const list = [];
+      DEFAULT_EMPLOYEES.forEach((name,i) => {
+        if(!hidden.has(name)) list.push({ id:"default-"+i, name:name, isDefault:true });
+      });
+      state.employees.forEach(e => list.push({ id:e.id, name:e.name, isDefault:false }));
+
+      const rows = list.length ? list.map(e => {
+        const status = e.name === state.me ? `<span class="pill pill-good">현재 로그인</span>` : (e.isDefault ? `<span class="pill">기본 계정</span>` : `<span class="pill pill-neutral">추가 계정</span>`);
+        const action = e.name === state.me
+          ? `<span style="color:var(--text-4);font-size:11px">삭제 불가</span>`
+          : `<button class="btn-danger" onclick="window.app.deleteEmployee('${esc(e.id)}','${esc(e.name)}',${e.isDefault})">삭제</button>`;
+        return `<tr><td class="td-strong">${esc(e.name)}</td><td>${status}</td><td style="text-align:right">${action}</td></tr>`;
+      }).join("") : `<tr><td colspan="3" class="empty-row">등록된 직원 없음</td></tr>`;
+
+      const hiddenList = state.hiddenDefaults.length ? state.hiddenDefaults.map(h => `<button class="kw-card" onclick="window.app.restoreDefault('${esc(h.id)}')"><div class="kw-card-name">${esc(h.name)}</div><div class="kw-card-meta">클릭하여 복구</div></button>`).join("") : `<div class="empty-row" style="padding:24px 0">숨김 처리된 기본 계정 없음</div>`;
+
+      return renderShell(pageHeader("직원 관리", state.status?"":"로그인 가능한 이름 목록 관리") + `
+        <div class="grid-2-eq">
+          <div class="panel">
+            <div class="panel-head"><div><div class="panel-title">직원 추가</div><div class="panel-sub">로그인 화면에 노출됩니다</div></div></div>
+            <div class="form-field"><label class="form-label">직원 이름</label><input class="form-input" type="text" value="${esc(f.name)}" placeholder="예: 홍길동" oninput="window.app.formInput('employee','name',this.value)"></div>
+            <button class="btn btn-primary" style="width:100%;padding:11px" onclick="window.app.saveEmployee()">+ 직원 추가</button>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><div class="panel-title">숨김 처리된 기본 계정</div><div class="panel-sub">클릭하면 다시 활성화</div></div></div>
+            <div class="kw-grid">${hiddenList}</div>
+          </div>
+        </div>
+        <div class="panel" style="margin-top:18px">
+          <div class="panel-head"><div><div class="panel-title">직원 목록 (${list.length}명)</div><div class="panel-sub">기본 계정 삭제는 숨김 처리됨 · 추가 계정 삭제는 영구 삭제</div></div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>이름</th><th>상태</th><th style="text-align:right">작업</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </div>`);
+    }
+
+    function buildBuckets(list){
       const start = rangeStartDate();
-      let startD = summaryRange==='all' ? null : new Date(start);
+      let startD = state.summaryRange === "all" ? null : new Date(start);
       const endD = new Date();
       let days;
       if(startD){
-        days = Math.floor((endD - startD) / 86400000) + 1;
-      }else{
-        const dates = list.map(function(r){return r.date;}).filter(Boolean).sort();
+        days = Math.floor((endD - startD)/86400000) + 1;
+      } else {
+        const dates = list.map(r => r.date).filter(Boolean).sort();
         if(!dates.length) return [];
-        const first = new Date(dates[0]);
-        days = Math.floor((endD - first) / 86400000) + 1;
-        startD = first;
+        startD = new Date(dates[0]);
+        days = Math.floor((endD - startD)/86400000) + 1;
       }
-      const base = startD || new Date(list.map(function(r){return r.date;}).filter(Boolean).sort()[0] || today());
       const map = {};
       for(let i=0;i<days;i++){
-        const d = new Date(base); d.setDate(d.getDate()+i);
-        const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-        map[key] = 0;
+        const d = new Date(startD); d.setDate(d.getDate()+i);
+        const k = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+        map[k] = 0;
       }
-      list.forEach(function(r){ if(r.date in map) map[r.date]++; });
-      return Object.keys(map).sort().map(function(k){
-        return { label: k.slice(5), count: map[k] };
-      });
+      list.forEach(r => { if(r.date in map) map[r.date]++; });
+      return Object.keys(map).sort().map(k => ({ label:k.slice(5), count:map[k] }));
+    }
+
+    function lineChart(buckets){
+      if(!buckets.length) return `<div class="empty-row" style="padding:48px 0">기간 내 데이터 없음</div>`;
+      const W=800, H=170, PL=40, PR=16, PT=20, PB=36;
+      const max = Math.max(1, ...buckets.map(b => b.count));
+      const stepX = (W-PL-PR) / Math.max(1, buckets.length-1);
+      const pts = buckets.map((b,i) => ({ x:PL+i*stepX, y:PT+(H-PT-PB)*(1-b.count/max), label:b.label, count:b.count }));
+      const path = pts.map((p,i) => (i?"L":"M")+p.x.toFixed(1)+" "+p.y.toFixed(1)).join(" ");
+      const area = path + ` L ${pts[pts.length-1].x.toFixed(1)} ${H-PB} L ${pts[0].x.toFixed(1)} ${H-PB} Z`;
+      const ticks = [0, Math.ceil(max/2), max];
+      const grid = ticks.map(v => {
+        const y = PT+(H-PT-PB)*(1-v/max);
+        return `<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="#1f1f23" stroke-dasharray="2 3"/><text x="${PL-8}" y="${y+4}" text-anchor="end" font-size="10" fill="#52525b" font-weight="500">${v}</text>`;
+      }).join("");
+      const labelStep = Math.max(1, Math.ceil(buckets.length/8));
+      const xLabels = pts.map((p,i) => (i%labelStep!==0 && i!==pts.length-1) ? "" : `<text x="${p.x}" y="${H-PB+18}" text-anchor="middle" font-size="10" fill="#52525b" font-weight="500">${esc(p.label)}</text>`).join("");
+      const dots = pts.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#10b981" stroke="#0a0a0b" stroke-width="2"><title>${esc(p.label)}: ${p.count}건</title></circle>`).join("");
+      return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+        <defs><linearGradient id="lcg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/><stop offset="100%" stop-color="#10b981" stop-opacity="0"/></linearGradient></defs>
+        ${grid}<path d="${area}" fill="url(#lcg)"/><path d="${path}" fill="none" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>${dots}${xLabels}
+      </svg>`;
     }
 
     function dowChart(list){
       const counts = [0,0,0,0,0,0,0];
-      list.forEach(function(r){
-        if(!r.date) return;
-        const d = new Date(r.date); if(isNaN(d)) return;
-        counts[d.getDay()]++;
-      });
-      const labels = ['일','월','화','수','목','금','토'];
+      list.forEach(r => { if(!r.date) return; const d = new Date(r.date); if(!isNaN(d)) counts[d.getDay()]++; });
+      const labels = ["일","월","화","수","목","금","토"];
       const max = Math.max(1, ...counts);
-      return '<div class="grid grid-cols-7 gap-2">'+counts.map(function(c,i){
-        const h = Math.max(8, Math.round(c/max*120));
-        const isWeekend = i===0 || i===6;
-        return '<div class="flex flex-col items-center gap-2"><div class="flex h-[140px] w-full items-end"><div class="w-full rounded-t-xl '+(isWeekend?'bg-rose-400':'bg-violet-500')+' transition" style="height:'+h+'px" title="'+labels[i]+': '+c+'건"></div></div><div class="text-xs font-extrabold '+(isWeekend?'text-rose-600':'text-slate-700')+'">'+labels[i]+'</div><div class="text-[11px] font-bold text-slate-500">'+c+'</div></div>';
-      }).join('')+'</div>';
+      return counts.map((c,i) => {
+        const h = Math.max(2, Math.round(c/max*120));
+        const we = i===0 || i===6;
+        return `<div class="dow-col"><div class="dow-count">${c}</div><div class="dow-bar ${we?"weekend":""}" style="height:${h}px"></div><div class="dow-label">${labels[i]}</div></div>`;
+      }).join("");
     }
 
-    function employeeComparison(list){
-      const names = people();
-      const stats = names.map(function(name){
-        const mine = list.filter(function(r){return r.employee===name;});
-        const validRanks = mine.map(function(r){return Number(r.rank);}).filter(function(n){return Number.isFinite(n) && n>0;});
+    function empCompare(list){
+      const stats = people().map(name => {
+        const mine = list.filter(r => r.employee === name);
+        const valid = mine.map(r => Number(r.rank)).filter(n => Number.isFinite(n) && n>0);
         return {
-          name: name,
-          count: mine.length,
-          kw: new Set(mine.map(function(r){return r.keyword;})).size,
-          avg: validRanks.length ? (validRanks.reduce(function(a,b){return a+b;},0)/validRanks.length).toFixed(1) : '-',
-          top10: mine.filter(function(r){const n=Number(r.rank); return Number.isFinite(n) && n>0 && n<=10;}).length
+          name, count:mine.length,
+          avg: valid.length ? (valid.reduce((a,b) => a+b, 0)/valid.length).toFixed(1) : "-",
+          top10: mine.filter(r => { const n=Number(r.rank); return Number.isFinite(n) && n>0 && n<=10; }).length
         };
-      }).sort(function(a,b){return b.count-a.count;});
-      const maxC = Math.max(1, ...stats.map(function(s){return s.count;}));
-      const rows = stats.map(function(s){
-        const w = Math.max(2, Math.round(s.count/maxC*100));
-        return '<div class="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">'+
-          '<div class="flex items-center justify-between gap-3"><div class="ellipsis font-extrabold text-slate-900">'+esc(s.name)+'</div><div class="text-2xl font-black text-violet-700">'+s.count+'<span class="text-xs font-bold text-slate-500">건</span></div></div>'+
-          '<div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-200"><div class="h-full rounded-full purple-grad" style="width:'+w+'%"></div></div>'+
-          '<div class="mt-3 grid grid-cols-3 gap-2 text-xs"><div class="rounded-xl bg-white px-2 py-2 text-center"><div class="font-bold text-slate-400">평균</div><div class="font-extrabold text-slate-900">'+s.avg+'위</div></div><div class="rounded-xl bg-white px-2 py-2 text-center"><div class="font-bold text-slate-400">키워드</div><div class="font-extrabold text-slate-900">'+s.kw+'개</div></div><div class="rounded-xl bg-white px-2 py-2 text-center"><div class="font-bold text-slate-400">10위내</div><div class="font-extrabold text-emerald-700">'+s.top10+'건</div></div></div>'+
-        '</div>';
-      }).join('');
-      return rows || '<div class="rounded-2xl border border-dashed p-8 text-center text-sm font-medium text-slate-400">기록 없음</div>';
+      }).sort((a,b) => b.count - a.count);
+      const max = Math.max(1, ...stats.map(s => s.count));
+      return stats.map(s => `<div class="emp-row"><div class="emp-name">${esc(s.name)}</div><div class="emp-bar"><div class="emp-fill" style="width:${Math.max(2, Math.round(s.count/max*100))}%"></div></div><div class="emp-stat"><strong>${s.count}</strong></div><div class="emp-stat">${s.avg}${s.avg!=="-"?"위":""}</div><div class="emp-stat">${s.top10}건</div></div>`).join("");
     }
 
     function keywordRoi(list){
-      // join records with keyword DB to get search volume
       const volMap = new Map();
-      keywords.forEach(function(k){ volMap.set(k.keyword, { vol: Number(k.searchVolume)||0, cat: k.category }); });
+      state.keywords.forEach(k => volMap.set(k.keyword, { vol:Number(k.searchVolume)||0, cat:k.category }));
       const map = new Map();
-      list.forEach(function(r){
+      list.forEach(r => {
         if(!r.keyword) return;
-        const cur = map.get(r.keyword) || { keyword:r.keyword, posts:0, ranks:[], top10:0, latestRank:null, latestDate:'' };
-        cur.posts++;
+        const c = map.get(r.keyword) || { keyword:r.keyword, posts:0, ranks:[], top10:0, latestRank:null, latestDate:"" };
+        c.posts++;
         const n = Number(r.rank);
-        if(Number.isFinite(n) && n>0){
-          cur.ranks.push(n);
-          if(n<=10) cur.top10++;
-        }
-        if((r.date||'') >= (cur.latestDate||'')){ cur.latestDate=r.date||''; cur.latestRank=r.rank; }
-        map.set(r.keyword, cur);
+        if(Number.isFinite(n) && n>0){ c.ranks.push(n); if(n<=10) c.top10++; }
+        if((r.date||"") >= (c.latestDate||"")){ c.latestDate = r.date||""; c.latestRank = r.rank; }
+        map.set(r.keyword, c);
       });
-      const rows = Array.from(map.values()).map(function(x){
-        const meta = volMap.get(x.keyword) || { vol:0, cat:'-' };
-        const avg = x.ranks.length ? (x.ranks.reduce(function(a,b){return a+b;},0)/x.ranks.length) : null;
-        return {
-          keyword: x.keyword,
-          cat: meta.cat || '-',
-          vol: meta.vol,
-          posts: x.posts,
-          avg: avg,
-          top10: x.top10,
-          latestRank: x.latestRank
-        };
-      }).sort(function(a,b){
-        // priority: high volume + best avg rank
-        const scoreA = (a.vol||0) - (a.avg||999)*100;
-        const scoreB = (b.vol||0) - (b.avg||999)*100;
-        return scoreB - scoreA;
-      }).slice(0, 12);
+      const rows = Array.from(map.values()).map(x => {
+        const meta = volMap.get(x.keyword) || { vol:0, cat:"-" };
+        const avg = x.ranks.length ? (x.ranks.reduce((a,b) => a+b, 0)/x.ranks.length) : null;
+        return { keyword:x.keyword, cat:meta.cat||"-", vol:meta.vol, posts:x.posts, avg, top10:x.top10, latestRank:x.latestRank };
+      }).sort((a,b) => ((b.vol||0)-(b.avg||999)*100) - ((a.vol||0)-(a.avg||999)*100)).slice(0,12);
 
-      if(!rows.length) return '<div class="rounded-2xl border border-dashed p-8 text-center text-sm font-medium text-slate-400">기록 없음</div>';
-      return '<div class="overflow-hidden rounded-2xl border border-slate-200"><div class="overflow-x-auto"><table class="w-full min-w-[820px] text-sm"><thead class="bg-slate-50 text-slate-600"><tr>'+
-        ['키워드','카테고리','월 검색량','작성','평균 순위','10위 내','최근 순위'].map(function(h){return '<th class="px-4 py-3 text-left text-xs font-extrabold uppercase tracking-wide">'+h+'</th>';}).join('')+
-        '</tr></thead><tbody class="divide-y divide-slate-100">'+rows.map(function(r){
-          const avgTxt = r.avg!==null ? r.avg.toFixed(1)+'위' : '-';
-          const avgCls = r.avg!==null ? rankColor(r.avg) : 'bg-slate-100 text-slate-500';
-          const latestCls = rankColor(r.latestRank);
-          return '<tr class="hover:bg-violet-50/30"><td class="px-4 py-3 font-extrabold text-slate-900"><div class="ellipsis max-w-[240px]">'+esc(r.keyword)+'</div></td>'+
-            '<td class="px-4 py-3 text-slate-600 font-semibold">'+esc(r.cat)+'</td>'+
-            '<td class="px-4 py-3 font-bold text-slate-900">'+(r.vol?r.vol.toLocaleString():'-')+'</td>'+
-            '<td class="px-4 py-3 font-bold text-violet-700">'+r.posts+'건</td>'+
-            '<td class="px-4 py-3"><span class="rounded-lg px-2 py-1 text-xs font-extrabold '+avgCls+'">'+avgTxt+'</span></td>'+
-            '<td class="px-4 py-3 font-bold text-emerald-700">'+r.top10+'건</td>'+
-            '<td class="px-4 py-3"><span class="rounded-lg px-2 py-1 text-xs font-extrabold '+latestCls+'">'+formatRank(r.latestRank)+'</span></td></tr>';
-        }).join('')+'</tbody></table></div></div>';
+      if(!rows.length) return `<tr><td colspan="7" class="empty-row">기록 없음</td></tr>`;
+      return rows.map(r => {
+        const avgTxt = r.avg !== null ? r.avg.toFixed(1)+"위" : "-";
+        const avgCls = r.avg !== null ? rankPillClass(r.avg) : "pill-neutral";
+        return `<tr><td class="td-strong">${esc(r.keyword)}</td><td><span class="pill">${esc(r.cat)}</span></td><td>${r.vol?r.vol.toLocaleString():"-"}</td><td>${r.posts}건</td><td><span class="pill ${avgCls}">${avgTxt}</span></td><td>${r.top10}건</td><td><span class="pill ${rankPillClass(r.latestRank)}">${formatRank(r.latestRank)}</span></td></tr>`;
+      }).join("");
     }
 
     function renderSummary(){
-      const list = summaryFilteredRecords();
-      const validRanks = list.map(function(r){return Number(r.rank);}).filter(function(n){return Number.isFinite(n) && n>0;});
-      const avgR = validRanks.length ? (validRanks.reduce(function(a,b){return a+b;},0)/validRanks.length).toFixed(1) : '-';
-      const top10 = list.filter(function(r){const n=Number(r.rank); return Number.isFinite(n) && n>0 && n<=10;}).length;
-      const uniqKw = new Set(list.map(function(r){return r.keyword;})).size;
-      const rangeLabel = summaryRange==='all' ? '전체 기간' : '최근 '+summaryRange+'일';
+      const list = summaryFiltered();
+      const valid = list.map(r => Number(r.rank)).filter(n => Number.isFinite(n) && n>0);
+      const avg = valid.length ? (valid.reduce((a,b) => a+b, 0)/valid.length).toFixed(1) : "-";
+      const top10 = list.filter(r => { const n = Number(r.rank); return Number.isFinite(n) && n>0 && n<=10; }).length;
+      const uniq = new Set(list.map(r => r.keyword)).size;
+      const rangeLabel = state.summaryRange === "all" ? "전체 기간" : "최근 "+state.summaryRange+"일";
+      const cats = ["전체"].concat(Array.from(new Set(state.keywords.map(k => k.category).filter(Boolean))));
+      const empOpts = ["전체"].concat(people());
 
-      const cats = ['전체'].concat(Array.from(new Set(keywords.map(function(k){return k.category;}).filter(Boolean))));
-      const empOpts = ['전체'].concat(people());
+      const filterBar = `<div class="filter-row">
+        ${["7","30","90","all"].map(v => `<button class="filter-chip ${state.summaryRange===v?"active":""}" onclick="window.app.setSummaryRange('${v}')">${v==="all"?"전체":v+"일"}</button>`).join("")}
+        <span class="divider-v"></span>
+        <select class="filter-select" onchange="window.app.setSummaryEmployee(this.value)">${empOpts.map(o => `<option value="${esc(o)}" ${o===state.summaryEmployee?"selected":""}>담당자: ${esc(o)}</option>`).join("")}</select>
+        <span class="divider-v"></span>
+        <select class="filter-select" onchange="window.app.setSummaryKeywordCat(this.value)">${cats.map(o => `<option value="${esc(o)}" ${o===state.summaryKeywordCat?"selected":""}>카테고리: ${esc(o)}</option>`).join("")}</select>
+        <span class="filter-meta">${esc(rangeLabel)} · ${esc(state.summaryEmployee)} · ${esc(state.summaryKeywordCat)}</span>
+      </div>`;
 
-      const filterBar = '<div class="soft-card flex flex-wrap items-center gap-3 rounded-[24px] border border-white bg-white p-4">'+
-        '<div class="flex items-center gap-2"><span class="text-xs font-extrabold text-slate-500">기간</span>'+
-          ['7','30','90','all'].map(function(v){
-            const lbl = v==='all'?'전체':(v+'일');
-            return '<button onclick="setSummaryRange(\''+v+'\')" class="rounded-full px-3 py-1.5 text-xs font-extrabold transition '+(summaryRange===v?'purple-grad text-white shadow':'bg-slate-100 text-slate-600 hover:bg-slate-200')+'">'+lbl+'</button>';
-          }).join('')+
-        '</div>'+
-        '<div class="h-6 w-px bg-slate-200"></div>'+
-        '<label class="flex items-center gap-2 text-xs font-extrabold text-slate-500">담당자<select onchange="setSummaryEmployee(this.value)" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold">'+empOpts.map(function(o){return '<option value="'+esc(o)+'" '+(o===summaryEmployee?'selected':'')+'>'+esc(o)+'</option>';}).join('')+'</select></label>'+
-        '<label class="flex items-center gap-2 text-xs font-extrabold text-slate-500">카테고리<select onchange="setSummaryKeywordCat(this.value)" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold">'+cats.map(function(o){return '<option value="'+esc(o)+'" '+(o===summaryKeywordCat?'selected':'')+'>'+esc(o)+'</option>';}).join('')+'</select></label>'+
-        '<div class="ml-auto text-xs font-bold text-slate-400">'+esc(rangeLabel)+' · '+esc(summaryEmployee)+' · '+esc(summaryKeywordCat)+'</div>'+
-      '</div>';
-
-      const buckets = buildDailyBuckets(list);
-
-      return '<div class="space-y-6">'+
-        filterBar+
-        '<div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">'+
-          kpi('작성 건수',list.length+'건',rangeLabel,'post')+
-          kpi('평균 순위',avgR+(avgR==='-'?'':'위'),'유효 순위 기준','rank')+
-          kpi('10위 내',top10+'건','상위 노출 성과','rank')+
-          kpi('활용 키워드',uniqKw+'개','중복 제외','key')+
-        '</div>'+
-        panel(sectionTitle('일별 작성 추이',rangeLabel+' 동안의 작성 흐름')+'<div class="mt-5">'+lineChartSvg(buckets)+'</div>')+
-        '<div class="grid gap-6 xl:grid-cols-[1fr_1fr]">'+
-          panel(sectionTitle('담당자별 비교','작성 건수 · 평균 순위 · 10위 내 노출')+'<div class="mt-5 grid gap-3">'+employeeComparison(list)+'</div>')+
-          panel(sectionTitle('요일별 작성 패턴','어느 요일에 가장 많이 쓰는가')+'<div class="mt-5">'+dowChart(list)+'</div>')+
-        '</div>'+
-        panel(sectionTitle('키워드 성과 (ROI)','월 검색량 대비 작성 수와 노출 성과 — 우선순위 정렬')+'<div class="mt-5">'+keywordRoi(list)+'</div>')+
-      '</div>';
+      return renderShell(pageHeader("전체 현황", state.status?"":rangeLabel+" · "+state.summaryEmployee+" · "+state.summaryKeywordCat, `<button class="btn btn-primary" onclick="window.app.setTab('작성 등록')">+ 기록 등록</button>`) + `
+        ${filterBar}
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-label">작성 건수</div><div class="kpi-value">${list.length}</div><div class="kpi-sub">${esc(rangeLabel)}</div></div>
+          <div class="kpi"><div class="kpi-label">평균 노출 순위</div><div class="kpi-value">${avg}${avg!=="-"?"위":""}</div><div class="kpi-sub">유효 순위 기준</div></div>
+          <div class="kpi"><div class="kpi-label">10위 내 노출</div><div class="kpi-value">${top10}</div><div class="kpi-sub good">상위 노출 성과</div></div>
+          <div class="kpi"><div class="kpi-label">활용 키워드</div><div class="kpi-value">${uniq}</div><div class="kpi-sub">중복 제외</div></div>
+        </div>
+        <div class="panel" style="margin-bottom:18px">
+          <div class="panel-head"><div><div class="panel-title">일별 작성 추이</div><div class="panel-sub">${esc(rangeLabel)} 작성 흐름</div></div></div>
+          <div class="chart-wrap">${lineChart(buildBuckets(list))}</div>
+        </div>
+        <div class="grid-2" style="margin-bottom:18px">
+          <div class="panel">
+            <div class="panel-head"><div><div class="panel-title">담당자별 비교</div><div class="panel-sub">작성 · 평균 순위 · 10위 내</div></div></div>
+            <div class="emp-list">${empCompare(list)}</div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><div class="panel-title">요일별 작성 패턴</div><div class="panel-sub">어느 요일에 가장 많이 쓰는가</div></div></div>
+            <div class="dow-chart">${dowChart(list)}</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><div class="panel-title">키워드 성과 (ROI)</div><div class="panel-sub">월 검색량 대비 작성 수와 노출 성과 — 상위 12개</div></div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>키워드</th><th>카테고리</th><th>월 검색량</th><th>작성</th><th>평균 순위</th><th>10위 내</th><th>최근 순위</th></tr></thead>
+              <tbody>${keywordRoi(list)}</tbody>
+            </table>
+          </div>
+        </div>`);
     }
+
     function renderContent(){
-      if(!me) return renderLogin();
-      if(tab==='작성 등록') return renderWrite();
-      if(tab==='키워드 보관함') return renderKeywords();
-      if(tab==='작성 캘린더') return renderCalendar();
-      if(tab==='내 성과') return renderMy();
-      if(tab==='업무 기록') return renderAll();
-      if(tab==='직원 관리') return renderEmployees();
-      return renderSummary();
+      if(!state.me) return renderLogin();
+      switch(state.tab){
+        case "작성 등록": return renderWrite();
+        case "키워드 보관함": return renderKeywords();
+        case "작성 캘린더": return renderCalendar();
+        case "내 성과": return renderMy();
+        case "업무 기록": return renderAll();
+        case "직원 관리": return renderEmployees();
+        default: return renderSummary();
+      }
     }
+
     function render(){
-      if(!me){ root.innerHTML = renderLogin(); return; }
-      const tabs = ['작성 등록','키워드 보관함','작성 캘린더','내 성과','업무 기록','전체 현황','직원 관리'];
-      root.innerHTML = '<div class="flex h-screen overflow-hidden"><aside class="sidebar-grad hidden w-72 shrink-0 flex-col text-white lg:flex"><div class="px-6 py-7"><div class="flex items-center gap-3"><div class="grid h-11 w-11 place-items-center rounded-2xl purple-grad text-lg font-black shadow-lg">V</div><div class="min-w-0"><div class="ellipsis text-xl font-extrabold tracking-tight">바이럴 마케팅</div><div class="mt-1 ellipsis text-xs font-semibold text-slate-400">자동 기록 시스템</div></div></div></div><div class="mx-4 rounded-[24px] border border-white/10 bg-white/5 p-4"><div class="text-xs font-bold text-slate-400">로그인 계정</div><div class="mt-2 rounded-2xl bg-white/10 px-4 py-3 text-sm font-extrabold">'+esc(me)+'</div><button onclick="logout()" class="mt-3 text-xs font-bold text-slate-400 hover:text-white">로그아웃</button></div><nav class="flex-1 space-y-2 overflow-y-auto px-4 py-5">'+tabs.map(function(t){return '<button onclick="setTab(\''+t+'\')" class="w-full truncate rounded-2xl px-4 py-3.5 text-left text-sm font-extrabold transition '+(tab===t?'purple-grad text-white shadow-lg shadow-violet-950/30':'text-slate-300 hover:bg-white/10')+'">'+t+'</button>';}).join('')+'</nav></aside><main class="min-w-0 flex-1 overflow-hidden"><header class="border-b border-white bg-white/90 px-5 py-5 lg:px-8"><div class="flex min-w-0 items-center justify-between gap-4"><div class="min-w-0"><h1 class="ellipsis text-3xl font-extrabold tracking-tight text-slate-950">'+esc(tab)+'</h1><p class="mt-1 ellipsis text-sm font-semibold text-slate-500">'+esc(status || ('로그인: '+me))+'</p></div><button onclick="setTab(\'작성 등록\')" class="hidden rounded-2xl purple-grad px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-violet-200 md:block">+ 기록 등록</button></div><div class="mt-4 flex gap-2 overflow-x-auto no-scrollbar lg:hidden">'+tabs.map(function(t){return '<button onclick="setTab(\''+t+'\')" class="shrink-0 rounded-full px-4 py-2 text-sm font-bold '+(tab===t?'bg-violet-600 text-white':'bg-white text-slate-600')+'">'+t+'</button>';}).join('')+'</div></header><div class="h-[calc(100vh-104px)] overflow-y-auto bg-[radial-gradient(circle_at_top_right,#ede9fe,transparent_36%),#f5f7fb] p-5 lg:p-8">'+renderContent()+'</div></main></div>';
+      const root = document.getElementById("app");
+      const focused = document.activeElement;
+      const focusId = focused?.id;
+      const cursorPos = focused?.selectionStart;
+      root.innerHTML = renderContent();
+      if(focusId){
+        const el = document.getElementById(focusId);
+        if(el && typeof el.focus === "function"){
+          el.focus();
+          if(typeof cursorPos === "number" && el.setSelectionRange){
+            try{ el.setSelectionRange(cursorPos, cursorPos); }catch(_){}
+          }
+        }
+      }
     }
 
-    async function saveEmployee(){
-      const name = (employeeDraft || document.getElementById('empName')?.value || '').trim();
-      if(!name) return setStatus('직원 이름을 입력하세요');
-      if(people().includes(name)) return setStatus('이미 등록된 이름입니다');
-      try{
-        setStatus('직원 저장 중...');
-        const ref = await addDoc(collection(db,COL.employees),{name:name,active:true,createdAt:serverTimestamp()});
-        employeeDraft='';
-        setStatus('직원 추가 완료 · ID: '+ref.id);
-      }catch(error){ console.error(error); setStatus('직원 저장 실패: '+(error.code || error.message)); }
-    }
-    async function deleteEmployee(id,name,isDefault){
-      if(name===me) return setStatus('현재 로그인 계정은 삭제할 수 없습니다');
-      if(!confirm(name+' 삭제?\n\n해당 직원의 작성 기록도 함께 삭제됩니다.')) return;
-      try{
-        const related = records.filter(function(r){return r.employee===name;});
-        await Promise.all(related.map(function(r){return deleteDoc(doc(db,COL.records,r.id));}));
-        if(!isDefault) await deleteDoc(doc(db,COL.employees,id));
-        setStatus(name+' 삭제 완료 · 작성 기록 '+related.length+'건 삭제');
-      }catch(error){ console.error(error); setStatus('직원 삭제 실패: '+(error.code || error.message)); }
-    }
-    async function saveKeyword(){
-      const keyword = document.getElementById('keyKeyword')?.value.trim();
-      if(!keyword) return setStatus('키워드를 입력하세요');
-      try{
-        setStatus('키워드 저장 중...');
-        const ref = await addDoc(collection(db,COL.keywords),{
-          keyword:keyword,
-          category:document.getElementById('keyCategory')?.value.trim() || '미분류',
-          searchVolume:document.getElementById('keyVolume')?.value ? Number(document.getElementById('keyVolume').value) : null,
-          createdAt:serverTimestamp()
-        });
-        setStatus('키워드 저장 완료 · ID: '+ref.id);
-      }catch(error){ console.error(error); setStatus('키워드 저장 실패: '+(error.code || error.message)); }
-    }
-    async function deleteKeyword(id){
-      if(!confirm('키워드 삭제?')) return;
-      try{ await deleteDoc(doc(db,COL.keywords,id)); setStatus('키워드 삭제 완료'); }
-      catch(error){ console.error(error); setStatus('키워드 삭제 실패: '+(error.code || error.message)); }
-    }
-    function useKeyword(id){
-      const k = keywords.find(function(x){return x.id===id;});
-      if(!k) return;
-      tab='작성 등록'; render();
-      setTimeout(function(){ const el=document.getElementById('postKeyword'); if(el) el.value=k.keyword; },0);
-    }
-    function openBlackkiwi(keyword){
-      const q = encodeURIComponent(keyword || '');
-      window.open('https://blackkiwi.net/service/keyword-analysis?keyword='+q+'&platform=naver','_blank','noopener,noreferrer');
-    }
-    function openBlackkiwiFromInput(){
-      const keyword = document.getElementById('keyKeyword')?.value.trim();
-      if(!keyword) return setStatus('키워드를 먼저 입력하세요');
-      openBlackkiwi(keyword);
-    }
-    async function saveRecord(){
-      const keyword = document.getElementById('postKeyword')?.value.trim();
-      const url = document.getElementById('postUrl')?.value.trim();
-      if(!keyword) return setStatus('키워드를 입력하세요');
-      if(!url) return setStatus('URL을 입력하세요');
-      if(!/^https?:\/\//.test(url)) return setStatus('URL은 http(s)://로 시작해야 합니다');
-      const rankValue = document.getElementById('postRank')?.value;
-      const rec = {date:document.getElementById('postDate')?.value || today(),employee:me,keyword:keyword,title:keyword,type:'블로그',rank:rankValue?Number(rankValue):'대기 중',url:url,memo:'',createdAt:serverTimestamp()};
-      try{
-        setStatus('작성 기록 저장 중...');
-        const ref = await addDoc(collection(db,COL.records),rec);
-        selectedDate = rec.date;
-        tab='작성 캘린더';
-        setStatus('작성 기록 저장 완료 · ID: '+ref.id);
-      }catch(error){ console.error(error); setStatus('작성 기록 저장 실패: '+(error.code || error.message)); }
-    }
-    async function deleteRecord(id){
-      const r = records.find(function(x){return x.id===id;});
-      if(r && r.employee!==me) return setStatus('본인 기록만 삭제할 수 있습니다');
-      if(!confirm('기록 삭제?')) return;
-      try{ await deleteDoc(doc(db,COL.records,id)); setStatus('기록 삭제 완료'); }
-      catch(error){ console.error(error); setStatus('기록 삭제 실패: '+(error.code || error.message)); }
-    }
-
-    window.login=function(){ me=document.getElementById('loginName')?.value || people()[0]; localStorage.setItem(LOGIN_KEY,me); render(); };
-    window.logout=function(){ localStorage.removeItem(LOGIN_KEY); me=''; render(); };
-    window.setTab=function(v){ tab=v; render(); };
-    window.setDate=function(v){ selectedDate=v; render(); };
-    window.setMonth=function(v){ month=v; selectedDate=v+'-01'; render(); };
-    window.setSearch=function(v){ search=v; render(); };
-    window.setKeywordCategory=function(v){ keywordCategory=v; render(); };
-    window.setKeywordSort=function(v){ keywordSort=v; render(); };
-    window.showKeywordDetail=function(v){ selectedKeywordForDetail=v; render(); };
-    window.setEmployeeDraft=function(v){ employeeDraft=v; };
-    window.setSummaryRange=function(v){ summaryRange=v; render(); };
-    window.setSummaryEmployee=function(v){ summaryEmployee=v; render(); };
-    window.setSummaryKeywordCat=function(v){ summaryKeywordCat=v; render(); };
-    window.saveEmployee=saveEmployee;
-    window.deleteEmployee=deleteEmployee;
-    window.saveKeyword=saveKeyword;
-    window.deleteKeyword=deleteKeyword;
-    window.useKeyword=useKeyword;
-    window.openBlackkiwi=openBlackkiwi;
-    window.openBlackkiwiFromInput=openBlackkiwiFromInput;
-    window.saveRecord=saveRecord;
-    window.deleteRecord=deleteRecord;
+    const app = {
+      login(){
+        const v = document.getElementById("loginName")?.value || people()[0];
+        state.me = v;
+        localStorage.setItem(LOGIN_KEY, v);
+        render();
+      },
+      logout(){ localStorage.removeItem(LOGIN_KEY); state.me = ""; render(); },
+      setTab(v){ state.tab = v; render(); },
+      setDate(v){ state.selectedDate = v; render(); },
+      setMonth(v){ state.month = v; state.selectedDate = v+"-01"; render(); },
+      setSearch(v){ state.search = v; render(); },
+      setKeywordCategory(v){ state.keywordCategory = v; render(); },
+      setKeywordSort(v){ state.keywordSort = v; render(); },
+      setSummaryRange(v){ state.summaryRange = v; render(); },
+      setSummaryEmployee(v){ state.summaryEmployee = v; render(); },
+      setSummaryKeywordCat(v){ state.summaryKeywordCat = v; render(); },
+      formInput(form, field, value){
+        if(state.forms[form]) state.forms[form][field] = value;
+      },
+      openBlackkiwi(keyword){
+        const q = encodeURIComponent(keyword || "");
+        window.open("https://blackkiwi.net/service/keyword-analysis?keyword="+q+"&platform=naver", "_blank", "noopener,noreferrer");
+      },
+      openBlackkiwiFromInput(){
+        const k = state.forms.keyword.keyword.trim();
+        if(!k) return setStatus("키워드를 먼저 입력하세요", true);
+        app.openBlackkiwi(k);
+      },
+      useKeyword(id){
+        const k = state.keywords.find(x => x.id === id);
+        if(!k) return;
+        state.tab = "작성 등록";
+        state.forms.write.keyword = k.keyword;
+        render();
+      },
+      async saveRecord(){
+        const f = state.forms.write;
+        if(!f.keyword.trim()) return setStatus("키워드를 입력하세요", true);
+        if(!f.url.trim()) return setStatus("URL을 입력하세요", true);
+        if(!/^https?:\/\//.test(f.url.trim())) return setStatus("URL은 http(s)://로 시작해야 합니다", true);
+        const rec = {
+          date: f.date || today(), employee: state.me,
+          keyword: f.keyword.trim(), title: f.keyword.trim(),
+          type: "블로그",
+          rank: f.rank ? Number(f.rank) : "대기 중",
+          url: f.url.trim(), memo: "",
+          createdAt: serverTimestamp()
+        };
+        try{
+          setStatus("저장 중…");
+          const ref = await addDoc(collection(db, COL.records), rec);
+          state.selectedDate = rec.date;
+          state.tab = "작성 캘린더";
+          state.forms.write = { date: today(), keyword: "", url: "", rank: "" };
+          setStatus("저장 완료 · ID "+ref.id);
+        } catch(e){ console.error(e); setStatus("저장 실패: "+(e.code||e.message), true); }
+      },
+      async deleteRecord(id){
+        const r = state.records.find(x => x.id === id);
+        if(r && r.employee !== state.me) return setStatus("본인 기록만 삭제할 수 있습니다", true);
+        if(!confirm("이 기록을 삭제할까요?")) return;
+        try{ await deleteDoc(doc(db, COL.records, id)); setStatus("삭제 완료"); }
+        catch(e){ console.error(e); setStatus("삭제 실패: "+(e.code||e.message), true); }
+      },
+      startEditRank(id, current){
+        state.editingRankId = id;
+        state.editingRankValue = String(current||"").replace("위","");
+        render();
+        setTimeout(() => { document.getElementById("rankInput_"+id)?.focus(); }, 0);
+      },
+      setEditingRankValue(v){ state.editingRankValue = v; },
+      cancelRank(){ state.editingRankId = null; state.editingRankValue = ""; render(); },
+      async saveRank(id){
+        const r = state.records.find(x => x.id === id);
+        if(r && r.employee !== state.me) return setStatus("본인 기록만 수정할 수 있습니다", true);
+        const v = state.editingRankValue.trim();
+        const newRank = v ? Number(v) : "대기 중";
+        try{
+          await updateDoc(doc(db, COL.records, id), { rank: newRank });
+          state.editingRankId = null;
+          state.editingRankValue = "";
+          setStatus("순위 수정됨");
+        } catch(e){ console.error(e); setStatus("수정 실패: "+(e.code||e.message), true); }
+      },
+      async saveKeyword(){
+        const f = state.forms.keyword;
+        if(!f.keyword.trim()) return setStatus("키워드를 입력하세요", true);
+        try{
+          setStatus("저장 중…");
+          const ref = await addDoc(collection(db, COL.keywords), {
+            keyword: f.keyword.trim(),
+            category: f.category.trim() || "미분류",
+            searchVolume: f.volume ? Number(f.volume) : null,
+            createdAt: serverTimestamp()
+          });
+          state.forms.keyword = { keyword: "", category: "", volume: "" };
+          setStatus("저장 완료 · ID "+ref.id);
+        } catch(e){ console.error(e); setStatus("저장 실패: "+(e.code||e.message), true); }
+      },
+      async deleteKeyword(id){
+        if(!confirm("이 키워드를 삭제할까요?")) return;
+        try{ await deleteDoc(doc(db, COL.keywords, id)); setStatus("키워드 삭제됨"); }
+        catch(e){ console.error(e); setStatus("삭제 실패: "+(e.code||e.message), true); }
+      },
+      async saveEmployee(){
+        const name = state.forms.employee.name.trim();
+        if(!name) return setStatus("이름을 입력하세요", true);
+        if(people().includes(name)) return setStatus("이미 등록된 이름입니다", true);
+        try{
+          setStatus("저장 중…");
+          await addDoc(collection(db, COL.employees), { name, active:true, createdAt: serverTimestamp() });
+          state.forms.employee.name = "";
+          setStatus("직원 추가 완료");
+        } catch(e){ console.error(e); setStatus("저장 실패: "+(e.code||e.message), true); }
+      },
+      async deleteEmployee(id, name, isDefault){
+        if(name === state.me) return setStatus("현재 로그인 계정은 삭제할 수 없습니다", true);
+        if(!confirm(name+" 삭제?\n\n해당 직원의 작성 기록도 함께 삭제됩니다.")) return;
+        try{
+          const related = state.records.filter(r => r.employee === name);
+          await Promise.all(related.map(r => deleteDoc(doc(db, COL.records, r.id))));
+          if(isDefault){
+            await addDoc(collection(db, COL.hiddenDefaults), { name, createdAt: serverTimestamp() });
+          } else {
+            await deleteDoc(doc(db, COL.employees, id));
+          }
+          setStatus(name+" 삭제 완료 · 기록 "+related.length+"건 삭제");
+        } catch(e){ console.error(e); setStatus("삭제 실패: "+(e.code||e.message), true); }
+      },
+      async restoreDefault(id){
+        if(!confirm("이 계정을 다시 활성화할까요?")) return;
+        try{ await deleteDoc(doc(db, COL.hiddenDefaults, id)); setStatus("복구 완료"); }
+        catch(e){ console.error(e); setStatus("복구 실패: "+(e.code||e.message), true); }
+      }
+    };
+    window.app = app;
 
     function subscribe(){
       render();
-      onSnapshot(query(collection(db,COL.employees),orderBy('createdAt','asc')),function(s){employees=s.docs.map(function(d){return {id:d.id,...d.data()};});status='Firestore 연결 완료';render();},function(e){console.error(e);status='직원 데이터 연결 실패: '+(e.code||e.message);render();});
-      onSnapshot(query(collection(db,COL.keywords),orderBy('createdAt','desc')),function(s){keywords=s.docs.map(function(d){return {id:d.id,...d.data()};});status='Firestore 연결 완료';render();},function(e){console.error(e);status='키워드 연결 실패: '+(e.code||e.message);render();});
-      onSnapshot(query(collection(db,COL.records),orderBy('createdAt','desc')),function(s){records=s.docs.map(function(d){return {id:d.id,...d.data()};});status='Firestore 연결 완료';render();},function(e){console.error(e);status='기록 연결 실패: '+(e.code||e.message);render();});
+      onSnapshot(query(collection(db, COL.employees), orderBy("createdAt","asc")),
+        s => { state.employees = s.docs.map(d => ({ id:d.id, ...d.data() })); state.status = "연결됨"; state.statusError=false; render(); },
+        e => { console.error(e); state.status = "직원 연결 실패: "+(e.code||e.message); state.statusError=true; render(); });
+      onSnapshot(query(collection(db, COL.keywords), orderBy("createdAt","desc")),
+        s => { state.keywords = s.docs.map(d => ({ id:d.id, ...d.data() })); state.status = "연결됨"; state.statusError=false; render(); },
+        e => { console.error(e); state.status = "키워드 연결 실패: "+(e.code||e.message); state.statusError=true; render(); });
+      onSnapshot(query(collection(db, COL.records), orderBy("createdAt","desc")),
+        s => { state.records = s.docs.map(d => ({ id:d.id, ...d.data() })); state.status = "연결됨"; state.statusError=false; render(); },
+        e => { console.error(e); state.status = "기록 연결 실패: "+(e.code||e.message); state.statusError=true; render(); });
+      onSnapshot(collection(db, COL.hiddenDefaults),
+        s => { state.hiddenDefaults = s.docs.map(d => ({ id:d.id, ...d.data() })); render(); },
+        e => console.error(e));
     }
     subscribe();
   </script>
