@@ -203,7 +203,7 @@
       const detailHtml = selectedKeywordForDetail ? panel(sectionTitle(selectedKeywordForDetail+' 작성 이력','누가 언제 작성했는지 확인합니다.','<button onclick="showKeywordDetail(\'\')" class="rounded-xl bg-slate-100 px-3 py-2 text-xs font-extrabold text-slate-600">닫기</button>')+table(['작성일','작성자','노출 순위','URL','작업'], selectedDetailRows.map(function(r){
         const del = r.employee===me ? '<button onclick="deleteRecord(\''+r.id+'\')" class="rounded-xl bg-rose-50 px-3 py-2 text-xs font-extrabold text-rose-700">삭제</button>' : '-';
         return [esc(r.date),esc(r.employee),formatRank(r.rank),'<a class="text-violet-700 font-semibold hover:underline" target="_blank" href="'+esc(r.url)+'">'+esc(r.url)+'</a>',del];
-      })) : '';
+      }))) : '';
 
       return '<div class="space-y-6">'+
         '<div class="grid gap-4 md:grid-cols-3">'+
