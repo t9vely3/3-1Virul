@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>바이럴 마케팅 관리</title>
+  <!-- version: 2026-04-27-fixed-firebase-project -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:'Noto Sans KR',system-ui,sans-serif;background:#f5f7fb;color:#0f172a}
+    .ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .soft-card{box-shadow:0 20px 50px rgba(15,23,42,.07)}
+    .sidebar-grad{background:linear-gradient(180deg,#08122d 0%,#0d1736 48%,#111827 100%)}
+    .purple-grad{background:linear-gradient(135deg,#7c3aed 0%,#4f46e5 55%,#06b6d4 100%)}
+    .no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+  </style>
+</head>
+<body>
+  <div id="app" class="h-screen overflow-hidden">
+    <div style="padding:40px;font-family:system-ui,sans-serif;color:#0f172a;">
+      <h2 style="font-size:24px;font-weight:800;margin:0 0 8px;">바이럴 마케팅 관리 로딩 중</h2>
+      <p style="margin:0;color:#64748b;">화면이 계속 멈추면 F12 Console의 빨간 오류를 확인하세요.</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCFVCuZ1_GCtDy_QD_cVn5zcvj5QmOLRpY",
+      authDomain: "virulmacket.firebaseapp.com",
+      projectId: "virulmacket",
+      storageBucket: "virulmacket.firebasestorage.app",
+      messagingSenderId: "392463171359",
+      appId: "1:392463171359:web:7f99826ecbee01d2e8ba2a"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    const db = getFirestore(firebaseApp);
+    const COL = { employees:"viral_employees", keywords:"viral_keywords", records:"viral_records" };
+
+    const DEFAULT_EMPLOYEES = ["김태욱","최봉경","김민영","조용준","심규리","최병훈"];
+    const PRIORITY = ["상","중","하"];
+    const LOGIN_KEY = "viral_login_name";
+
+    const root = document.getElementById("app");
+    let tab = "작성 등록";
+    let me = localStorage.getItem(LOGIN_KEY) || "";
+    let employees = [];
+    let keywords = [];
+    let records = [];
+    let status = "Firestore 연결 중";
+    let selectedDate = today();
+    let month = today().slice(0,7);
+    let search = "";
+    let keywordCategory = "전체";
+    let keywordSort = "created";
+    let employeeDraft = "";
+    let selectedKeywordForDetail = "";
+    let summaryRange = "30";
+    let summaryEmployee = "전체";
+    let summaryKeywordCat = "전체";
+
+    function today(){
+      const d = new Date();
+      return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    }
+    function esc(v){
+      return String(v ?? "").replace(/[&<>'"]/g, function(c){
+        return {"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c];
+      });
+    }
+    function people(){
+      const list = employees.map(function(e){return e.name;}).filter(Boolean);
+      return list.length ? list : DEFAULT_EMPLOYEES;
+    }
+    function setStatus(msg){
+      status = msg;
+      render();
+      setTimeout(function(){ if(status === msg){ status = ""; render(); } }, 3000);
+    }
+    function ranks(list){
+      return (list || records).map(function(r){return Number(r.rank);}).filter(function(n){return Number.isFinite(n) && n > 0;});
+    }
+    function avgRank(list){
+      const arr = ranks(list || records);
+      return arr.length ? (arr.reduce(function(a,b){return a+b;},0)/arr.length).toFixed(1) : "-";
+    }
+    function mineRecords(){ return records.filter(function(r){return r.employee === me;}); }
+    function filteredRecords(){
+      const q = search.trim().toLowerCase();
+      if(!q) return records;
+      return records.filter(function(r){
+        return [r.keyword,r.employee,r.url].some(function(v){return String(v||"").toLowerCase().includes(q);});
+      });
+    }
+    function keywordDb(){
+      const map = new Map();
+      records.forEach(function(r){
+        if(!r.keyword) return;
+        const cur = map.get(r.keyword) || { keyword:r.keyword, owner:r.employee, posts:0, ranks:[] };
+        cur.posts += 1;
+        cur.owner = r.employee;
+        const n = Number(r.rank);
+        if(Number.isFinite(n) && n > 0) cur.ranks.push(n);
+        map.set(r.keyword, cur);
+      });
+      return Array.from(map.values()).map(function(x){
+        const avg = x.ranks.length ? (x.ranks.reduce(function(a,b){return a+b;},0)/x.ranks.length).toFixed(1) : "-";
+        return { keyword:x.keyword, owner:x.owner, posts:x.posts, avgRank:avg };
+      });
+    }
+    function iconSvg(type){
+      const common = "h-6 w-6";
+      const icons = {
+        post:'<svg class="'+common+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>',
+        key:'<svg class="'+common+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="4"/><path d="M11 11l9 9"/><path d="M16 16l2-2"/><path d="M19 19l2-2"/></svg>',
+        user:'<svg class="'+common+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>',
+        rank:'<svg class="'+common+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>',
+        month:'<svg class="'+common+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>'
+      };
+      return icons[type] || icons.post;
+    }
+    function kpi(label,value,sub,icon){
+      return '<div class="soft-card group relative overflow-hidden rounded-[30px] border border-white bg-white p-6 transition duration-200 hover:-translate-y-1 hover:shadow-2xl">'+
+        '<div class="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-gradient-to-br from-violet-100 via-indigo-50 to-cyan-50"></div>'+
+        '<div class="absolute bottom-0 left-0 h-1.5 w-full bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-400"></div>'+
+        '<div class="relative flex items-start justify-between gap-4"><div class="min-w-0">'+
+        '<div class="ellipsis text-sm font-extrabold text-slate-500">'+esc(label)+'</div>'+
+        '<div class="mt-2 ellipsis text-4xl font-black tracking-tight text-slate-950">'+esc(value)+'</div>'+
+        '<div class="mt-1 ellipsis text-sm font-semibold text-slate-400">'+esc(sub)+'</div></div>'+
+        '<div class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-slate-950 text-white shadow-xl shadow-slate-300/70 ring-4 ring-white/80 transition group-hover:scale-105 group-hover:bg-violet-700">'+iconSvg(icon)+'</div></div></div>';
+    }
+    function panel(content){ return '<section class="soft-card rounded-[28px] border border-white bg-white p-6">'+content+'</section>'; }
+    function sectionTitle(t,d,right){
+      return '<div class="flex min-w-0 items-start justify-between gap-4"><div class="min-w-0"><h2 class="ellipsis text-xl font-extrabold tracking-tight text-slate-950">'+esc(t)+'</h2><p class="mt-1 ellipsis text-sm font-medium text-slate-500">'+esc(d)+'</p></div>'+(right||'')+'</div>';
+    }
+    function input(label,id,ph,type,value){
+      return '<label class="block"><div class="mb-2 ellipsis text-sm font-bold text-slate-700">'+esc(label)+'</div><input id="'+id+'" type="'+(type||'text')+'" value="'+esc(value||'')+'" placeholder="'+esc(ph||'')+'" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"></label>';
+    }
+    function select(label,id,opts,val){
+      return '<label class="block"><div class="mb-2 ellipsis text-sm font-bold text-slate-700">'+esc(label)+'</div><select id="'+id+'" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100">'+opts.map(function(o){return '<option value="'+esc(o)+'" '+(o===val?'selected':'')+'>'+esc(o)+'</option>';}).join('')+'</select></label>';
+    }
+    function formatRank(rank){
+      if(rank === null || rank === undefined || rank === '') return '대기 중';
+      return Number.isFinite(Number(rank)) ? rank+'위' : esc(rank);
+    }
+    function table(headers,rows){
+      return '<div class="mt-5 overflow-hidden rounded-[24px] border border-slate-200 bg-white"><div class="overflow-x-auto"><table class="w-full min-w-[920px] table-fixed text-sm"><thead class="bg-slate-50 text-slate-600"><tr>'+headers.map(function(h){return '<th class="px-4 py-4 text-left font-extrabold"><div class="ellipsis">'+esc(h)+'</div></th>';}).join('')+'</tr></thead><tbody class="divide-y divide-slate-100">'+(rows.length?rows.map(function(r){return '<tr class="hover:bg-violet-50/30">'+r.map(function(c){return '<td class="px-4 py-4 align-middle"><div class="ellipsis">'+c+'</div></td>';}).join('')+'</tr>';}).join(''):'<tr><td colspan="'+headers.length+'" class="px-4 py-12 text-center font-medium text-slate-400">표시할 데이터가 없습니다.</td></tr>')+'</tbody></table></div></div>';
+    }
+    function recordRows(list){
+      return list.map(function(r){
+        const del = r.employee===me ? '<button onclick="deleteRecord(&quot;'+esc(r.id)+'&quot;)" class="rounded-xl bg-rose-50 px-3 py-2 text-xs font-extrabold text-rose-700">삭제</button>' : '-';
+        return [esc(r.date),esc(r.employee),esc(r.keyword),formatRank(r.rank),'<a class="text-violet-700 font-semibold hover:underline" target="_blank" href="'+esc(r.url)+'">'+esc(r.url)+'</a>',del];
+      });
+    }
+
+    function renderLogin(){
+      return '<div class="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,#312e81,#020617_58%)] p-6"><div class="w-full max-w-md rounded-[32px] bg-white p-8 shadow-2xl"><div class="mb-6 inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-extrabold text-violet-700">Viral Marketing System</div><h1 class="text-3xl font-extrabold tracking-tight">로그인</h1><p class="mt-2 text-sm font-medium text-slate-500">선택한 이름으로만 작성 기록이 저장됩니다.</p><div class="mt-7 space-y-4">'+select('이름','loginName',people(),people()[0])+'<button onclick="login()" class="w-full rounded-2xl purple-grad px-4 py-4 text-sm font-extrabold text-white shadow-lg shadow-violet-200">로그인</button></div></div></div>';
+    }
+    function renderWrite(){
+      return '<div class="grid gap-6 xl:grid-cols-[520px_1fr]">'+
+        panel(sectionTitle('게시글 등록',me+' 이름으로만 저장됩니다.')+'<div class="mt-6 space-y-4">'+input('작성일','postDate','','date',selectedDate)+'<div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm"><div class="text-xs font-bold text-slate-500">작성자</div><div class="mt-1 text-base font-extrabold">'+esc(me)+'</div></div>'+input('키워드 *','postKeyword','예: 홍대시포디학원')+input('게시글 URL *','postUrl','https://blog.naver.com/...')+input('현재 노출 순위','postRank','미작성 시 대기 중으로 저장','number')+'<button onclick="saveRecord()" class="w-full rounded-2xl purple-grad px-4 py-4 text-sm font-extrabold text-white shadow-lg shadow-violet-200">작성 기록 저장</button></div>')+
+        panel(sectionTitle('키워드 참고','보관함 키워드를 클릭하면 입력됩니다.')+'<div class="mt-5 grid gap-3">'+(keywords.length?keywords.map(function(k){return '<button onclick="useKeyword(&quot;'+esc(k.id)+'&quot;)" class="group rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left transition hover:border-violet-200 hover:bg-violet-50"><div class="ellipsis font-extrabold text-slate-900 group-hover:text-violet-700">'+esc(k.keyword)+'</div><div class="mt-1 ellipsis text-sm font-medium text-slate-500">'+esc(k.category)+' · 월검색량 '+(k.searchVolume?Number(k.searchVolume).toLocaleString():'-')+'</div></button>';}).join(''):'<div class="rounded-2xl border border-dashed p-8 text-center text-sm font-medium text-slate-400">저장된 키워드가 없습니다.</div>')+'</div>')+
+        '</div>';
+    }
+    function renderKeywords(){
+      const cats = ['전체'].concat(Array.from(new Set(keywords.map(function(k){return k.category;}).filter(Boolean))));
+      let list = keywordCategory==='전체' ? keywords.slice() : keywords.filter(function(k){return k.category===keywordCategory;});
+      if(keywordSort==='volumeDesc') list.sort(function(a,b){return (Number(b.searchVolume)||0)-(Number(a.searchVolume)||0);});
+      if(keywordSort==='volumeAsc') list.sort(function(a,b){return (Number(a.searchVolume)||0)-(Number(b.searchVolume)||0);});
+
+      const keywordStats = list.map(function(k){
+        const written = records.filter(function(r){return r.keyword===k.keyword;});
+        return Object.assign({}, k, { writeCount: written.length, written: written });
+      });
+      const topWritten = keywordStats.slice().sort(function(a,b){return b.writeCount-a.writeCount;}).slice(0,5);
+      const maxCount = Math.max(1, ...keywordStats.map(function(k){return k.writeCount;}));
+      const totalVolume = keywordStats.reduce(function(sum,k){return sum + (Number(k.searchVolume)||0);},0);
+      const avgVolume = keywordStats.length ? Math.round(totalVolume / keywordStats.length) : 0;
+      const selectedDetailRows = selectedKeywordForDetail ? records.filter(function(r){return r.keyword===selectedKeywordForDetail;}) : [];
+
+      const rows = keywordStats.map(function(k){
+        return [
+          '<div class="font-extrabold text-slate-950">'+esc(k.keyword)+'</div>',
+          '<span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-extrabold text-slate-600">'+esc(k.category||'미분류')+'</span>',
+          k.searchVolume?'<span class="font-black text-violet-700">'+Number(k.searchVolume).toLocaleString()+'</span>':'-',
+          '<button onclick="showKeywordDetail(&quot;'+esc(k.keyword)+'&quot;)" class="rounded-xl bg-indigo-50 px-3 py-2 text-xs font-extrabold text-indigo-700 hover:bg-indigo-100">'+k.writeCount+'건</button>',
+          '<button onclick="openBlackkiwi(&quot;'+esc(k.keyword)+'&quot;)" class="rounded-xl bg-violet-50 px-3 py-2 text-xs font-extrabold text-violet-700">검색량 확인</button> <button onclick="useKeyword(\''+k.id+'\')" class="rounded-xl bg-slate-950 px-3 py-2 text-xs font-extrabold text-white">사용</button> <button onclick="deleteKeyword(&quot;'+esc(k.id)+'&quot;)" class="rounded-xl bg-rose-50 px-3 py-2 text-xs font-extrabold text-rose-700">삭제</button>'
+        ];
+      });
+
+      const topHtml = topWritten.length ? topWritten.map(function(k){
+        const width = Math.max(4, Math.round((k.writeCount/maxCount)*100));
+        return '<button onclick="showKeywordDetail(\''+esc(k.keyword)+'\')" class="w-full rounded-2xl bg-slate-50 p-4 text-left transition hover:bg-violet-50"><div class="flex items-center justify-between gap-3"><div class="min-w-0"><div class="ellipsis font-extrabold text-slate-950">'+esc(k.keyword)+'</div><div class="mt-1 text-xs font-bold text-slate-400">월검색량 '+(k.searchVolume?Number(k.searchVolume).toLocaleString():'-')+'</div></div><div class="shrink-0 rounded-xl bg-white px-3 py-2 text-sm font-black text-violet-700 shadow-sm">'+k.writeCount+'건</div></div><div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-200"><div class="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400" style="width:'+width+'%"></div></div></button>';
+      }).join('') : '<div class="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-sm font-bold text-slate-400">아직 작성된 키워드가 없습니다.</div>';
+
+      const detailHtml = selectedKeywordForDetail ? panel(sectionTitle(selectedKeywordForDetail+' 작성 이력','누가 언제 작성했는지 확인합니다.','<button onclick="showKeywordDetail(\'\')" class="rounded-xl bg-slate-100 px-3 py-2 text-xs font-extrabold text-slate-600">닫기</button>')+table(['작성일','작성자','노출 순위','URL','작업'], selectedDetailRows.map(function(r){
+        const del = r.employee===me ? '<button onclick="deleteRecord(\''+r.id+'\')" class="rounded-xl bg-rose-50 px-3 py-2 text-xs font-extrabold text-rose-700">삭제</button>' : '-';
+        return [esc(r.date),esc(r.employee),formatRank(r.rank),'<a class="text-violet-700 font-semibold hover:underline" target="_blank" href="'+esc(r.url)+'">'+esc(r.url)+'</a>',del];
+      })) : '';
+
+      return '<div class="space-y-6">'+
+        '<div class="grid gap-4 md:grid-cols-3">'+
+          kpi('보관 키워드',keywords.length+'개','전체 저장 키워드','key')+
+          kpi('총 월검색량',totalVolume.toLocaleString(),'현재 필터 기준','rank')+
+          kpi('평균 검색량',avgVolume.toLocaleString(),'키워드당 평균','month')+
+        '</div>'+
+        '<div class="grid gap-6 xl:grid-cols-[420px_1fr]">'+
+          panel(sectionTitle('키워드 저장','블랙키위에서 검색량 확인 후 월 검색량을 입력합니다.')+'<div class="mt-6 space-y-4">'+input('키워드 *','keyKeyword','예: 영상편집학원')+'<button onclick="openBlackkiwiFromInput()" class="w-full rounded-2xl bg-violet-50 px-4 py-3 text-sm font-extrabold text-violet-700">블랙키위에서 검색량 확인</button>'+input('카테고리','keyCategory','예: 영상 / 디자인 / 자격증 / 웹툰')+input('월 검색량','keyVolume','예: 3200','number')+'<button onclick="saveKeyword()" class="w-full rounded-2xl purple-grad px-4 py-4 text-sm font-extrabold text-white shadow-lg shadow-violet-200">키워드 저장</button></div>')+
+          panel(sectionTitle('많이 작성되는 키워드 TOP 5','작성 기록 기준 자동 집계')+'<div class="mt-5 space-y-3">'+topHtml+'</div>')+
+        '</div>'+
+        panel(sectionTitle('키워드 보관함','카테고리별 확인과 월 검색량 정렬이 가능합니다.','<select onchange="setKeywordSort(this.value)" class="rounded-2xl border px-3 py-2 text-sm font-bold"><option value="created" '+(keywordSort==='created'?'selected':'')+'>최신순</option><option value="volumeDesc" '+(keywordSort==='volumeDesc'?'selected':'')+'>월검색량 높은순</option><option value="volumeAsc" '+(keywordSort==='volumeAsc'?'selected':'')+'>월검색량 낮은순</option></select>')+'<div class="mt-5 flex flex-wrap gap-2">'+cats.map(function(c){return '<button onclick="setKeywordCategory(&quot;'+esc(c)+'&quot;)" class="rounded-full px-4 py-2 text-sm font-extrabold '+(keywordCategory===c?'purple-grad text-white':'bg-slate-100 text-slate-600 hover:bg-slate-200')+'">'+esc(c)+'</button>';}).join('')+'</div>'+table(['키워드','카테고리','월 검색량','작성 수','작업'],rows))+
+        detailHtml+
+        '</div>';
+    }
+    function renderCalendar(){
+      const parts = month.split('-').map(Number);
+      const total = new Date(parts[0],parts[1],0).getDate();
+      const blank = new Date(month+'-01').getDay();
+      let cells = '';
+      for(let i=0;i<blank;i++) cells += '<div></div>';
+      for(let d=1;d<=total;d++){
+        const date = month+'-'+String(d).padStart(2,'0');
+        const list = records.filter(function(r){return r.date===date;});
+        cells += '<button onclick="setDate(\''+date+'\')" class="h-24 rounded-2xl border p-3 text-left transition '+(selectedDate===date?'border-violet-500 bg-violet-100 shadow-lg shadow-violet-100':list.length?'border-violet-200 bg-violet-50':'border-slate-200 bg-white hover:bg-slate-50')+'"><div class="text-right text-xs font-bold text-slate-400">'+d+'</div>'+(list.length?'<div class="mt-8 rounded-xl bg-white px-2 py-1 text-xs font-extrabold text-violet-700 ellipsis">작성 '+list.length+'건</div>':'<div class="mt-8 text-xs font-medium text-slate-300">기록 없음</div>')+'</button>';
+      }
+      return '<div class="space-y-6">'+panel(sectionTitle('작성 캘린더','월 단위 작성 기록','<div class="flex gap-2"><input type="month" value="'+month+'" onchange="setMonth(this.value)" class="rounded-2xl border px-3 py-2 text-sm"><input type="date" value="'+selectedDate+'" onchange="setDate(this.value)" class="rounded-2xl border px-3 py-2 text-sm"></div>')+'<div class="mt-6 grid grid-cols-7 gap-2 text-xs">'+['일','월','화','수','목','금','토'].map(function(x){return '<div class="text-center font-extrabold text-slate-500">'+x+'</div>';}).join('')+cells+'</div>')+panel(sectionTitle(selectedDate+' 작성 기록','본인 기록만 삭제할 수 있습니다.')+table(['작성일','작성자','키워드','노출 순위','URL','작업'],recordRows(records.filter(function(r){return r.date===selectedDate;}))))+'</div>';
+    }
+    function renderMy(){
+      const mine = mineRecords();
+      return '<div class="space-y-6"><div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">'+kpi(me+' 작성 수',mine.length+'건','누적','post')+kpi(me+' 평균 순위',avgRank(mine)+'위','유효 순위 기준','rank')+kpi(me+' 키워드 수',new Set(mine.map(function(r){return r.keyword;})).size+'개','중복 제외','key')+kpi('이번 달 작성',mine.filter(function(r){return String(r.date||'').startsWith(month);}).length+'건',month,'month')+'</div>'+panel(sectionTitle(me+'의 최근 등록','내 작성 기록만 표시')+table(['작성일','작성자','키워드','노출 순위','URL','작업'],recordRows(mine)))+'</div>';
+    }
+    function renderAll(){ return panel(sectionTitle('전체 업무 기록','검색 가능','<input placeholder="검색" value="'+esc(search)+'" oninput="setSearch(this.value)" class="rounded-2xl border px-4 py-2 text-sm outline-none focus:ring-4 focus:ring-violet-100">')+table(['작성일','작성자','키워드','노출 순위','URL','작업'],recordRows(filteredRecords()))); }
+    function renderEmployees(){
+      const list = employees.length ? employees : DEFAULT_EMPLOYEES.map(function(name,i){return {id:'default-'+i,name:name,isDefault:true};});
+      const rows = list.map(function(e){
+        const action = e.name===me ? '<span class="text-slate-400 text-xs font-bold">삭제 불가</span>' : '<button onclick="deleteEmployee(\''+e.id+'\',\''+esc(e.name)+'\','+(e.isDefault?'true':'false')+')" class="rounded-xl bg-rose-50 px-3 py-2 text-xs font-extrabold text-rose-700 hover:bg-rose-100">삭제</button>';
+        return [esc(e.name),e.name===me?'현재 로그인':(e.isDefault?'기본 계정':'추가 계정'),action];
+      });
+      return '<div class="grid gap-6 xl:grid-cols-[420px_1fr]">'+panel(sectionTitle('직원 추가','로그인 이름 목록 관리')+'<div class="mt-6 space-y-4"><label class="block"><div class="mb-2 ellipsis text-sm font-bold text-slate-700">직원 이름</div><input id="empName" type="text" value="'+esc(employeeDraft)+'" oninput="setEmployeeDraft(this.value)" placeholder="예: 홍길동" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-violet-400 focus:ring-violet-100"></label><button onclick="saveEmployee()" class="w-full rounded-2xl purple-grad px-4 py-4 text-sm font-extrabold text-white">직원 추가</button></div>')+panel(sectionTitle('직원 목록','삭제하면 로그인 목록에서 제외됩니다.')+table(['이름','상태','작업'],rows))+'</div>';
+    }
+    function rangeStartDate(){
+      if(summaryRange==='all') return '0000-00-00';
+      const days = Number(summaryRange) || 30;
+      const d = new Date();
+      d.setDate(d.getDate() - (days-1));
+      return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    }
+    function summaryFilteredRecords(){
+      const start = rangeStartDate();
+      const catKeywords = summaryKeywordCat==='전체' ? null : new Set(keywords.filter(function(k){return k.category===summaryKeywordCat;}).map(function(k){return k.keyword;}));
+      return records.filter(function(r){
+        if((r.date||'') < start) return false;
+        if(summaryEmployee!=='전체' && r.employee!==summaryEmployee) return false;
+        if(catKeywords && !catKeywords.has(r.keyword)) return false;
+        return true;
+      });
+    }
+    function rankColor(rank){
+      const n = Number(rank);
+      if(!Number.isFinite(n) || n<=0) return 'bg-slate-100 text-slate-500';
+      if(n<=3) return 'bg-emerald-100 text-emerald-700';
+      if(n<=10) return 'bg-amber-100 text-amber-700';
+      return 'bg-rose-100 text-rose-700';
+    }
+
+    function lineChartSvg(buckets){
+      // buckets: [{label, count}]
+      if(!buckets.length) return '<div class="rounded-2xl border border-dashed p-12 text-center text-sm font-medium text-slate-400">기간 내 데이터 없음</div>';
+      const W = 760, H = 240, PL = 40, PR = 16, PT = 20, PB = 36;
+      const max = Math.max(1, ...buckets.map(function(b){return b.count;}));
+      const stepX = (W - PL - PR) / Math.max(1, buckets.length - 1);
+      const points = buckets.map(function(b,i){
+        const x = PL + i*stepX;
+        const y = PT + (H - PT - PB) * (1 - b.count/max);
+        return {x:x, y:y, label:b.label, count:b.count};
+      });
+      const path = points.map(function(p,i){return (i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1);}).join(' ');
+      const area = path + ' L '+points[points.length-1].x.toFixed(1)+' '+(H-PB)+' L '+points[0].x.toFixed(1)+' '+(H-PB)+' Z';
+      const yTicks = [0, Math.ceil(max/2), max];
+      const yLines = yTicks.map(function(v){
+        const y = PT + (H - PT - PB) * (1 - v/max);
+        return '<line x1="'+PL+'" y1="'+y+'" x2="'+(W-PR)+'" y2="'+y+'" stroke="#e2e8f0" stroke-dasharray="3 4"/><text x="'+(PL-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="#94a3b8" font-weight="700">'+v+'</text>';
+      }).join('');
+      const xLabelStep = Math.max(1, Math.ceil(buckets.length / 8));
+      const xLabels = points.map(function(p,i){
+        if(i % xLabelStep !== 0 && i !== points.length-1) return '';
+        return '<text x="'+p.x+'" y="'+(H-PB+18)+'" text-anchor="middle" font-size="10" fill="#64748b" font-weight="600">'+esc(p.label)+'</text>';
+      }).join('');
+      const dots = points.map(function(p){
+        return '<circle cx="'+p.x+'" cy="'+p.y+'" r="3.5" fill="#7c3aed" stroke="white" stroke-width="2"><title>'+esc(p.label)+': '+p.count+'건</title></circle>';
+      }).join('');
+      return '<svg viewBox="0 0 '+W+' '+H+'" class="w-full" preserveAspectRatio="xMidYMid meet">'+
+        '<defs><linearGradient id="lcG" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.25"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></linearGradient></defs>'+
+        yLines+
+        '<path d="'+area+'" fill="url(#lcG)"/>'+
+        '<path d="'+path+'" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+        dots + xLabels +
+        '</svg>';
+    }
+
+    function buildDailyBuckets(list){
+      const start = rangeStartDate();
+      let startD = summaryRange==='all' ? null : new Date(start);
+      const endD = new Date();
+      let days;
+      if(startD){
+        days = Math.floor((endD - startD) / 86400000) + 1;
+      }else{
+        const dates = list.map(function(r){return r.date;}).filter(Boolean).sort();
+        if(!dates.length) return [];
+        const first = new Date(dates[0]);
+        days = Math.floor((endD - first) / 86400000) + 1;
+        startD = first;
+      }
+      const base = startD || new Date(list.map(function(r){return r.date;}).filter(Boolean).sort()[0] || today());
+      const map = {};
+      for(let i=0;i<days;i++){
+        const d = new Date(base); d.setDate(d.getDate()+i);
+        const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+        map[key] = 0;
+      }
+      list.forEach(function(r){ if(r.date in map) map[r.date]++; });
+      return Object.keys(map).sort().map(function(k){
+        return { label: k.slice(5), count: map[k] };
+      });
+    }
+
+    function dowChart(list){
+      const counts = [0,0,0,0,0,0,0];
+      list.forEach(function(r){
+        if(!r.date) return;
+        const d = new Date(r.date); if(isNaN(d)) return;
+        counts[d.getDay()]++;
+      });
+      const labels = ['일','월','화','수','목','금','토'];
+      const max = Math.max(1, ...counts);
+      return '<div class="grid grid-cols-7 gap-2">'+counts.map(function(c,i){
+        const h = Math.max(8, Math.round(c/max*120));
+        const isWeekend = i===0 || i===6;
+        return '<div class="flex flex-col items-center gap-2"><div class="flex h-[140px] w-full items-end"><div class="w-full rounded-t-xl '+(isWeekend?'bg-rose-400':'bg-violet-500')+' transition" style="height:'+h+'px" title="'+labels[i]+': '+c+'건"></div></div><div class="text-xs font-extrabold '+(isWeekend?'text-rose-600':'text-slate-700')+'">'+labels[i]+'</div><div class="text-[11px] font-bold text-slate-500">'+c+'</div></div>';
+      }).join('')+'</div>';
+    }
+
+    function employeeComparison(list){
+      const names = people();
+      const stats = names.map(function(name){
+        const mine = list.filter(function(r){return r.employee===name;});
+        const validRanks = mine.map(function(r){return Number(r.rank);}).filter(function(n){return Number.isFinite(n) && n>0;});
+        return {
+          name: name,
+          count: mine.length,
+          kw: new Set(mine.map(function(r){return r.keyword;})).size,
+          avg: validRanks.length ? (validRanks.reduce(function(a,b){return a+b;},0)/validRanks.length).toFixed(1) : '-',
+          top10: mine.filter(function(r){const n=Number(r.rank); return Number.isFinite(n) && n>0 && n<=10;}).length
+        };
+      }).sort(function(a,b){return b.count-a.count;});
+      const maxC = Math.max(1, ...stats.map(function(s){return s.count;}));
+      const rows = stats.map(function(s){
+        const w = Math.max(2, Math.round(s.count/maxC*100));
+        return '<div class="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">'+
+          '<div class="flex items-center justify-between gap-3"><div class="ellipsis font-extrabold text-slate-900">'+esc(s.name)+'</div><div class="text-2xl font-black text-violet-700">'+s.count+'<span class="text-xs font-bold text-slate-500">건</span></div></div>'+
+          '<div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-200"><div class="h-full rounded-full purple-grad" style="width:'+w+'%"></div></div>'+
+          '<div class="mt-3 grid grid-cols-3 gap-2 text-xs"><div class="rounded-xl bg-white px-2 py-2 text-center"><div class="font-bold text-slate-400">평균</div><div class="font-extrabold text-slate-900">'+s.avg+'위</div></div><div class="rounded-xl bg-white px-2 py-2 text-center"><div class="font-bold text-slate-400">키워드</div><div class="font-extrabold text-slate-900">'+s.kw+'개</div></div><div class="rounded-xl bg-white px-2 py-2 text-center"><div class="font-bold text-slate-400">10위내</div><div class="font-extrabold text-emerald-700">'+s.top10+'건</div></div></div>'+
+        '</div>';
+      }).join('');
+      return rows || '<div class="rounded-2xl border border-dashed p-8 text-center text-sm font-medium text-slate-400">기록 없음</div>';
+    }
+
+    function keywordRoi(list){
+      // join records with keyword DB to get search volume
+      const volMap = new Map();
+      keywords.forEach(function(k){ volMap.set(k.keyword, { vol: Number(k.searchVolume)||0, cat: k.category }); });
+      const map = new Map();
+      list.forEach(function(r){
+        if(!r.keyword) return;
+        const cur = map.get(r.keyword) || { keyword:r.keyword, posts:0, ranks:[], top10:0, latestRank:null, latestDate:'' };
+        cur.posts++;
+        const n = Number(r.rank);
+        if(Number.isFinite(n) && n>0){
+          cur.ranks.push(n);
+          if(n<=10) cur.top10++;
+        }
+        if((r.date||'') >= (cur.latestDate||'')){ cur.latestDate=r.date||''; cur.latestRank=r.rank; }
+        map.set(r.keyword, cur);
+      });
+      const rows = Array.from(map.values()).map(function(x){
+        const meta = volMap.get(x.keyword) || { vol:0, cat:'-' };
+        const avg = x.ranks.length ? (x.ranks.reduce(function(a,b){return a+b;},0)/x.ranks.length) : null;
+        return {
+          keyword: x.keyword,
+          cat: meta.cat || '-',
+          vol: meta.vol,
+          posts: x.posts,
+          avg: avg,
+          top10: x.top10,
+          latestRank: x.latestRank
+        };
+      }).sort(function(a,b){
+        // priority: high volume + best avg rank
+        const scoreA = (a.vol||0) - (a.avg||999)*100;
+        const scoreB = (b.vol||0) - (b.avg||999)*100;
+        return scoreB - scoreA;
+      }).slice(0, 12);
+
+      if(!rows.length) return '<div class="rounded-2xl border border-dashed p-8 text-center text-sm font-medium text-slate-400">기록 없음</div>';
+      return '<div class="overflow-hidden rounded-2xl border border-slate-200"><div class="overflow-x-auto"><table class="w-full min-w-[820px] text-sm"><thead class="bg-slate-50 text-slate-600"><tr>'+
+        ['키워드','카테고리','월 검색량','작성','평균 순위','10위 내','최근 순위'].map(function(h){return '<th class="px-4 py-3 text-left text-xs font-extrabold uppercase tracking-wide">'+h+'</th>';}).join('')+
+        '</tr></thead><tbody class="divide-y divide-slate-100">'+rows.map(function(r){
+          const avgTxt = r.avg!==null ? r.avg.toFixed(1)+'위' : '-';
+          const avgCls = r.avg!==null ? rankColor(r.avg) : 'bg-slate-100 text-slate-500';
+          const latestCls = rankColor(r.latestRank);
+          return '<tr class="hover:bg-violet-50/30"><td class="px-4 py-3 font-extrabold text-slate-900"><div class="ellipsis max-w-[240px]">'+esc(r.keyword)+'</div></td>'+
+            '<td class="px-4 py-3 text-slate-600 font-semibold">'+esc(r.cat)+'</td>'+
+            '<td class="px-4 py-3 font-bold text-slate-900">'+(r.vol?r.vol.toLocaleString():'-')+'</td>'+
+            '<td class="px-4 py-3 font-bold text-violet-700">'+r.posts+'건</td>'+
+            '<td class="px-4 py-3"><span class="rounded-lg px-2 py-1 text-xs font-extrabold '+avgCls+'">'+avgTxt+'</span></td>'+
+            '<td class="px-4 py-3 font-bold text-emerald-700">'+r.top10+'건</td>'+
+            '<td class="px-4 py-3"><span class="rounded-lg px-2 py-1 text-xs font-extrabold '+latestCls+'">'+formatRank(r.latestRank)+'</span></td></tr>';
+        }).join('')+'</tbody></table></div></div>';
+    }
+
+    function renderSummary(){
+      const list = summaryFilteredRecords();
+      const validRanks = list.map(function(r){return Number(r.rank);}).filter(function(n){return Number.isFinite(n) && n>0;});
+      const avgR = validRanks.length ? (validRanks.reduce(function(a,b){return a+b;},0)/validRanks.length).toFixed(1) : '-';
+      const top10 = list.filter(function(r){const n=Number(r.rank); return Number.isFinite(n) && n>0 && n<=10;}).length;
+      const uniqKw = new Set(list.map(function(r){return r.keyword;})).size;
+      const rangeLabel = summaryRange==='all' ? '전체 기간' : '최근 '+summaryRange+'일';
+
+      const cats = ['전체'].concat(Array.from(new Set(keywords.map(function(k){return k.category;}).filter(Boolean))));
+      const empOpts = ['전체'].concat(people());
+
+      const filterBar = '<div class="soft-card flex flex-wrap items-center gap-3 rounded-[24px] border border-white bg-white p-4">'+
+        '<div class="flex items-center gap-2"><span class="text-xs font-extrabold text-slate-500">기간</span>'+
+          ['7','30','90','all'].map(function(v){
+            const lbl = v==='all'?'전체':(v+'일');
+            return '<button onclick="setSummaryRange(\''+v+'\')" class="rounded-full px-3 py-1.5 text-xs font-extrabold transition '+(summaryRange===v?'purple-grad text-white shadow':'bg-slate-100 text-slate-600 hover:bg-slate-200')+'">'+lbl+'</button>';
+          }).join('')+
+        '</div>'+
+        '<div class="h-6 w-px bg-slate-200"></div>'+
+        '<label class="flex items-center gap-2 text-xs font-extrabold text-slate-500">담당자<select onchange="setSummaryEmployee(this.value)" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold">'+empOpts.map(function(o){return '<option value="'+esc(o)+'" '+(o===summaryEmployee?'selected':'')+'>'+esc(o)+'</option>';}).join('')+'</select></label>'+
+        '<label class="flex items-center gap-2 text-xs font-extrabold text-slate-500">카테고리<select onchange="setSummaryKeywordCat(this.value)" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold">'+cats.map(function(o){return '<option value="'+esc(o)+'" '+(o===summaryKeywordCat?'selected':'')+'>'+esc(o)+'</option>';}).join('')+'</select></label>'+
+        '<div class="ml-auto text-xs font-bold text-slate-400">'+esc(rangeLabel)+' · '+esc(summaryEmployee)+' · '+esc(summaryKeywordCat)+'</div>'+
+      '</div>';
+
+      const buckets = buildDailyBuckets(list);
+
+      return '<div class="space-y-6">'+
+        filterBar+
+        '<div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">'+
+          kpi('작성 건수',list.length+'건',rangeLabel,'post')+
+          kpi('평균 순위',avgR+(avgR==='-'?'':'위'),'유효 순위 기준','rank')+
+          kpi('10위 내',top10+'건','상위 노출 성과','rank')+
+          kpi('활용 키워드',uniqKw+'개','중복 제외','key')+
+        '</div>'+
+        panel(sectionTitle('일별 작성 추이',rangeLabel+' 동안의 작성 흐름')+'<div class="mt-5">'+lineChartSvg(buckets)+'</div>')+
+        '<div class="grid gap-6 xl:grid-cols-[1fr_1fr]">'+
+          panel(sectionTitle('담당자별 비교','작성 건수 · 평균 순위 · 10위 내 노출')+'<div class="mt-5 grid gap-3">'+employeeComparison(list)+'</div>')+
+          panel(sectionTitle('요일별 작성 패턴','어느 요일에 가장 많이 쓰는가')+'<div class="mt-5">'+dowChart(list)+'</div>')+
+        '</div>'+
+        panel(sectionTitle('키워드 성과 (ROI)','월 검색량 대비 작성 수와 노출 성과 — 우선순위 정렬')+'<div class="mt-5">'+keywordRoi(list)+'</div>')+
+      '</div>';
+    }
+    function renderContent(){
+      if(!me) return renderLogin();
+      if(tab==='작성 등록') return renderWrite();
+      if(tab==='키워드 보관함') return renderKeywords();
+      if(tab==='작성 캘린더') return renderCalendar();
+      if(tab==='내 성과') return renderMy();
+      if(tab==='업무 기록') return renderAll();
+      if(tab==='직원 관리') return renderEmployees();
+      return renderSummary();
+    }
+    function render(){
+      if(!me){ root.innerHTML = renderLogin(); return; }
+      const tabs = ['작성 등록','키워드 보관함','작성 캘린더','내 성과','업무 기록','전체 현황','직원 관리'];
+      root.innerHTML = '<div class="flex h-screen overflow-hidden"><aside class="sidebar-grad hidden w-72 shrink-0 flex-col text-white lg:flex"><div class="px-6 py-7"><div class="flex items-center gap-3"><div class="grid h-11 w-11 place-items-center rounded-2xl purple-grad text-lg font-black shadow-lg">V</div><div class="min-w-0"><div class="ellipsis text-xl font-extrabold tracking-tight">바이럴 마케팅</div><div class="mt-1 ellipsis text-xs font-semibold text-slate-400">자동 기록 시스템</div></div></div></div><div class="mx-4 rounded-[24px] border border-white/10 bg-white/5 p-4"><div class="text-xs font-bold text-slate-400">로그인 계정</div><div class="mt-2 rounded-2xl bg-white/10 px-4 py-3 text-sm font-extrabold">'+esc(me)+'</div><button onclick="logout()" class="mt-3 text-xs font-bold text-slate-400 hover:text-white">로그아웃</button></div><nav class="flex-1 space-y-2 overflow-y-auto px-4 py-5">'+tabs.map(function(t){return '<button onclick="setTab(\''+t+'\')" class="w-full truncate rounded-2xl px-4 py-3.5 text-left text-sm font-extrabold transition '+(tab===t?'purple-grad text-white shadow-lg shadow-violet-950/30':'text-slate-300 hover:bg-white/10')+'">'+t+'</button>';}).join('')+'</nav></aside><main class="min-w-0 flex-1 overflow-hidden"><header class="border-b border-white bg-white/90 px-5 py-5 lg:px-8"><div class="flex min-w-0 items-center justify-between gap-4"><div class="min-w-0"><h1 class="ellipsis text-3xl font-extrabold tracking-tight text-slate-950">'+esc(tab)+'</h1><p class="mt-1 ellipsis text-sm font-semibold text-slate-500">'+esc(status || ('로그인: '+me))+'</p></div><button onclick="setTab(\'작성 등록\')" class="hidden rounded-2xl purple-grad px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-violet-200 md:block">+ 기록 등록</button></div><div class="mt-4 flex gap-2 overflow-x-auto no-scrollbar lg:hidden">'+tabs.map(function(t){return '<button onclick="setTab(\''+t+'\')" class="shrink-0 rounded-full px-4 py-2 text-sm font-bold '+(tab===t?'bg-violet-600 text-white':'bg-white text-slate-600')+'">'+t+'</button>';}).join('')+'</div></header><div class="h-[calc(100vh-104px)] overflow-y-auto bg-[radial-gradient(circle_at_top_right,#ede9fe,transparent_36%),#f5f7fb] p-5 lg:p-8">'+renderContent()+'</div></main></div>';
+    }
+
+    async function saveEmployee(){
+      const name = (employeeDraft || document.getElementById('empName')?.value || '').trim();
+      if(!name) return setStatus('직원 이름을 입력하세요');
+      if(people().includes(name)) return setStatus('이미 등록된 이름입니다');
+      try{
+        setStatus('직원 저장 중...');
+        const ref = await addDoc(collection(db,COL.employees),{name:name,active:true,createdAt:serverTimestamp()});
+        employeeDraft='';
+        setStatus('직원 추가 완료 · ID: '+ref.id);
+      }catch(error){ console.error(error); setStatus('직원 저장 실패: '+(error.code || error.message)); }
+    }
+    async function deleteEmployee(id,name,isDefault){
+      if(name===me) return setStatus('현재 로그인 계정은 삭제할 수 없습니다');
+      if(!confirm(name+' 삭제?\n\n해당 직원의 작성 기록도 함께 삭제됩니다.')) return;
+      try{
+        const related = records.filter(function(r){return r.employee===name;});
+        await Promise.all(related.map(function(r){return deleteDoc(doc(db,COL.records,r.id));}));
+        if(!isDefault) await deleteDoc(doc(db,COL.employees,id));
+        setStatus(name+' 삭제 완료 · 작성 기록 '+related.length+'건 삭제');
+      }catch(error){ console.error(error); setStatus('직원 삭제 실패: '+(error.code || error.message)); }
+    }
+    async function saveKeyword(){
+      const keyword = document.getElementById('keyKeyword')?.value.trim();
+      if(!keyword) return setStatus('키워드를 입력하세요');
+      try{
+        setStatus('키워드 저장 중...');
+        const ref = await addDoc(collection(db,COL.keywords),{
+          keyword:keyword,
+          category:document.getElementById('keyCategory')?.value.trim() || '미분류',
+          searchVolume:document.getElementById('keyVolume')?.value ? Number(document.getElementById('keyVolume').value) : null,
+          createdAt:serverTimestamp()
+        });
+        setStatus('키워드 저장 완료 · ID: '+ref.id);
+      }catch(error){ console.error(error); setStatus('키워드 저장 실패: '+(error.code || error.message)); }
+    }
+    async function deleteKeyword(id){
+      if(!confirm('키워드 삭제?')) return;
+      try{ await deleteDoc(doc(db,COL.keywords,id)); setStatus('키워드 삭제 완료'); }
+      catch(error){ console.error(error); setStatus('키워드 삭제 실패: '+(error.code || error.message)); }
+    }
+    function useKeyword(id){
+      const k = keywords.find(function(x){return x.id===id;});
+      if(!k) return;
+      tab='작성 등록'; render();
+      setTimeout(function(){ const el=document.getElementById('postKeyword'); if(el) el.value=k.keyword; },0);
+    }
+    function openBlackkiwi(keyword){
+      const q = encodeURIComponent(keyword || '');
+      window.open('https://blackkiwi.net/service/keyword-analysis?keyword='+q+'&platform=naver','_blank','noopener,noreferrer');
+    }
+    function openBlackkiwiFromInput(){
+      const keyword = document.getElementById('keyKeyword')?.value.trim();
+      if(!keyword) return setStatus('키워드를 먼저 입력하세요');
+      openBlackkiwi(keyword);
+    }
+    async function saveRecord(){
+      const keyword = document.getElementById('postKeyword')?.value.trim();
+      const url = document.getElementById('postUrl')?.value.trim();
+      if(!keyword) return setStatus('키워드를 입력하세요');
+      if(!url) return setStatus('URL을 입력하세요');
+      if(!/^https?:\/\//.test(url)) return setStatus('URL은 http(s)://로 시작해야 합니다');
+      const rankValue = document.getElementById('postRank')?.value;
+      const rec = {date:document.getElementById('postDate')?.value || today(),employee:me,keyword:keyword,title:keyword,type:'블로그',rank:rankValue?Number(rankValue):'대기 중',url:url,memo:'',createdAt:serverTimestamp()};
+      try{
+        setStatus('작성 기록 저장 중...');
+        const ref = await addDoc(collection(db,COL.records),rec);
+        selectedDate = rec.date;
+        tab='작성 캘린더';
+        setStatus('작성 기록 저장 완료 · ID: '+ref.id);
+      }catch(error){ console.error(error); setStatus('작성 기록 저장 실패: '+(error.code || error.message)); }
+    }
+    async function deleteRecord(id){
+      const r = records.find(function(x){return x.id===id;});
+      if(r && r.employee!==me) return setStatus('본인 기록만 삭제할 수 있습니다');
+      if(!confirm('기록 삭제?')) return;
+      try{ await deleteDoc(doc(db,COL.records,id)); setStatus('기록 삭제 완료'); }
+      catch(error){ console.error(error); setStatus('기록 삭제 실패: '+(error.code || error.message)); }
+    }
+
+    window.login=function(){ me=document.getElementById('loginName')?.value || people()[0]; localStorage.setItem(LOGIN_KEY,me); render(); };
+    window.logout=function(){ localStorage.removeItem(LOGIN_KEY); me=''; render(); };
+    window.setTab=function(v){ tab=v; render(); };
+    window.setDate=function(v){ selectedDate=v; render(); };
+    window.setMonth=function(v){ month=v; selectedDate=v+'-01'; render(); };
+    window.setSearch=function(v){ search=v; render(); };
+    window.setKeywordCategory=function(v){ keywordCategory=v; render(); };
+    window.setKeywordSort=function(v){ keywordSort=v; render(); };
+    window.showKeywordDetail=function(v){ selectedKeywordForDetail=v; render(); };
+    window.setEmployeeDraft=function(v){ employeeDraft=v; };
+    window.setSummaryRange=function(v){ summaryRange=v; render(); };
+    window.setSummaryEmployee=function(v){ summaryEmployee=v; render(); };
+    window.setSummaryKeywordCat=function(v){ summaryKeywordCat=v; render(); };
+    window.saveEmployee=saveEmployee;
+    window.deleteEmployee=deleteEmployee;
+    window.saveKeyword=saveKeyword;
+    window.deleteKeyword=deleteKeyword;
+    window.useKeyword=useKeyword;
+    window.openBlackkiwi=openBlackkiwi;
+    window.openBlackkiwiFromInput=openBlackkiwiFromInput;
+    window.saveRecord=saveRecord;
+    window.deleteRecord=deleteRecord;
+
+    function subscribe(){
+      render();
+      onSnapshot(query(collection(db,COL.employees),orderBy('createdAt','asc')),function(s){employees=s.docs.map(function(d){return {id:d.id,...d.data()};});status='Firestore 연결 완료';render();},function(e){console.error(e);status='직원 데이터 연결 실패: '+(e.code||e.message);render();});
+      onSnapshot(query(collection(db,COL.keywords),orderBy('createdAt','desc')),function(s){keywords=s.docs.map(function(d){return {id:d.id,...d.data()};});status='Firestore 연결 완료';render();},function(e){console.error(e);status='키워드 연결 실패: '+(e.code||e.message);render();});
+      onSnapshot(query(collection(db,COL.records),orderBy('createdAt','desc')),function(s){records=s.docs.map(function(d){return {id:d.id,...d.data()};});status='Firestore 연결 완료';render();},function(e){console.error(e);status='기록 연결 실패: '+(e.code||e.message);render();});
+    }
+    subscribe();
+  </script>
+</body>
+</html>
