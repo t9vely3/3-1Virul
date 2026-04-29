@@ -199,6 +199,40 @@
       main{padding:16px}
       .kpi-grid{grid-template-columns:repeat(2,1fr)}
     }
+
+    /* Admin: Team Dashboard */
+    .emp-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+    .emp-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:14px;transition:border-color 0.1s;position:relative}
+    .emp-card:hover{border-color:var(--border-strong)}
+    .emp-card.warning{border-color:var(--bad-border);background:linear-gradient(180deg,rgba(251,113,133,0.04) 0%,var(--surface) 50%)}
+    .emp-card-head{display:flex;align-items:center;gap:12px}
+    .emp-card-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px;flex-shrink:0}
+    .emp-card-name{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-0.01em}
+    .emp-card-meta{font-size:12px;color:var(--text-3);font-weight:500;margin-top:2px}
+    .emp-card-meta.warn{color:#fda4af}
+    .emp-card-meta.good{color:#6ee7b7}
+    .emp-card-rank{margin-left:auto;font-size:11px;font-weight:700;color:var(--accent-2);background:var(--accent-soft);padding:3px 8px;border-radius:4px;border:1px solid var(--good-border);border-color:rgba(167,139,250,0.3)}
+    .emp-card-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden}
+    .emp-card-stat{background:var(--surface-2);padding:10px 12px;text-align:center}
+    .emp-card-stat-label{font-size:10.5px;color:var(--text-3);font-weight:600;letter-spacing:0.04em;text-transform:uppercase}
+    .emp-card-stat-value{font-size:18px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;margin-top:2px;letter-spacing:-0.02em}
+    .emp-card-spark{height:38px;margin:0 -2px}
+    .emp-card-spark svg{width:100%;height:100%;display:block}
+
+    /* Heatmap */
+    .heatmap{display:grid;grid-template-columns:80px repeat(7,1fr);gap:4px;font-size:11.5px}
+    .heatmap-corner{}
+    .heatmap-day-head{padding:6px 4px;text-align:center;font-size:11px;color:var(--text-3);font-weight:600}
+    .heatmap-day-head.today{color:var(--accent-2);font-weight:700}
+    .heatmap-name{padding:8px 6px;font-weight:600;color:var(--text-2);font-size:12px;display:flex;align-items:center}
+    .heatmap-cell{aspect-ratio:1.6/1;min-height:38px;border-radius:5px;display:grid;place-items:center;font-weight:700;font-variant-numeric:tabular-nums;font-size:13px;border:1px solid var(--border)}
+    .heatmap-cell.lvl-0{background:var(--surface-2);color:var(--text-4)}
+    .heatmap-cell.lvl-1{background:rgba(167,139,250,0.15);color:#c4b5fd;border-color:rgba(167,139,250,0.25)}
+    .heatmap-cell.lvl-2{background:rgba(167,139,250,0.32);color:#ffffff;border-color:rgba(167,139,250,0.4)}
+    .heatmap-cell.lvl-3{background:rgba(167,139,250,0.55);color:#ffffff;border-color:rgba(167,139,250,0.6)}
+    .heatmap-cell.lvl-4{background:#a78bfa;color:#161829;border-color:#c4b5fd}
+    .heatmap-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-3);font-weight:500}
+    .heatmap-legend-cell{width:14px;height:14px;border-radius:3px;border:1px solid var(--border)}
   </style>
 </head>
 <body>
@@ -220,6 +254,7 @@
     const db = getFirestore(firebaseApp);
     const COL = { employees:"viral_employees", keywords:"viral_keywords", records:"viral_records", hiddenDefaults:"viral_hidden_defaults" };
     const DEFAULT_EMPLOYEES = ["김태욱","최봉경","김민영","조용준","심규리","최병훈"];
+    const ADMINS = ["김태욱"];
     const LOGIN_KEY = "viral_login_name";
 
     const state = {
@@ -230,6 +265,8 @@
       selectedDate: today(), month: today().slice(0,7),
       search: "", keywordCategory: "전체", keywordSort: "created",
       summaryRange: "30", summaryEmployee: "전체", summaryKeywordCat: "전체",
+      adminSort: "posts",
+      adminRange: "30",
       forms: {
         write: { date: today(), keyword: "", url: "", rank: "" },
         keyword: { keyword: "", category: "", volume: "" },
@@ -262,6 +299,9 @@
       if(!name) return "";
       if(/^[가-힣]+$/.test(name)) return name.length >= 3 ? name.slice(-2) : name;
       return name.split(/\s+/).map(p => p[0]).join("").toUpperCase().slice(0,2);
+    }
+    function isAdmin(){
+      return ADMINS.includes(state.me);
     }
     function rangeStartDate(){
       if(state.summaryRange === "all") return "0000-00-00";
@@ -306,7 +346,8 @@
       user: '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
       chart: '<svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 14 4-4 4 4 5-5"/></svg>',
       dash: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
-      team: '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>'
+      team: '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>',
+      team2: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>'
     };
 
     function renderLogin(){
@@ -331,11 +372,13 @@
         { id:"내 성과", icon:"user", section:"Analytics" },
         { id:"업무 기록", icon:"chart", section:"Analytics" },
         { id:"전체 현황", icon:"dash", section:"Analytics" },
+        { id:"팀 대시보드", icon:"team2", section:"팀 관리", adminOnly:true },
         { id:"직원 관리", icon:"team", section:"설정" }
       ];
       let nav = "";
       let lastSection = "";
       tabs.forEach(t => {
+        if(t.adminOnly && !isAdmin()) return;
         if(t.section !== lastSection){
           nav += `<div class="nav-section">${esc(t.section)}</div>`;
           lastSection = t.section;
@@ -797,6 +840,175 @@
         </div>`);
     }
 
+    function renderTeamDashboard(){
+      const days = state.adminRange === "all" ? 9999 : Number(state.adminRange);
+      const cutoffD = new Date();
+      cutoffD.setDate(cutoffD.getDate() - (days-1));
+      const cutoff = cutoffD.getFullYear()+"-"+String(cutoffD.getMonth()+1).padStart(2,"0")+"-"+String(cutoffD.getDate()).padStart(2,"0");
+      const filtered = state.records.filter(r => (r.date || "") >= cutoff);
+      const rangeLabel = state.adminRange === "all" ? "전체 기간" : "최근 "+state.adminRange+"일";
+
+      // 팀 KPI
+      const allValid = filtered.map(r => Number(r.rank)).filter(n => Number.isFinite(n) && n>0);
+      const teamAvg = allValid.length ? (allValid.reduce((a,b) => a+b, 0)/allValid.length).toFixed(1) : "-";
+      const teamTop10 = filtered.filter(r => { const n = Number(r.rank); return Number.isFinite(n) && n>0 && n<=10; }).length;
+      const activeEmployees = new Set(filtered.map(r => r.employee).filter(Boolean)).size;
+      const totalEmployees = people().length;
+
+      // 직원별 상세 통계
+      const todayD = new Date();
+      todayD.setHours(0,0,0,0);
+      const stats = people().map(name => {
+        const mine = filtered.filter(r => r.employee === name);
+        const valid = mine.map(r => Number(r.rank)).filter(n => Number.isFinite(n) && n>0);
+        const avg = valid.length ? (valid.reduce((a,b) => a+b, 0)/valid.length) : null;
+        const top10 = mine.filter(r => { const n=Number(r.rank); return Number.isFinite(n) && n>0 && n<=10; }).length;
+        // 마지막 작성일
+        const lastDates = state.records.filter(r => r.employee === name).map(r => r.date).filter(Boolean).sort();
+        const lastDate = lastDates.length ? lastDates[lastDates.length-1] : null;
+        let daysSince = null;
+        if(lastDate){
+          const ld = new Date(lastDate);
+          daysSince = Math.floor((todayD - ld)/86400000);
+        }
+        // 7일 미니 추이
+        const spark = [];
+        for(let i=6;i>=0;i--){
+          const d = new Date(); d.setDate(d.getDate()-i);
+          const k = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+          spark.push(state.records.filter(r => r.employee === name && r.date === k).length);
+        }
+        return { name, count:mine.length, avg, top10, daysSince, lastDate, spark };
+      });
+
+      // 정렬
+      const sorted = stats.slice();
+      if(state.adminSort === "posts") sorted.sort((a,b) => b.count - a.count);
+      else if(state.adminSort === "rank") sorted.sort((a,b) => (a.avg ?? 999) - (b.avg ?? 999));
+      else if(state.adminSort === "recent") sorted.sort((a,b) => (a.daysSince ?? 999) - (b.daysSince ?? 999));
+
+      // 직원 카드
+      const cards = sorted.map((s,idx) => {
+        const isWarn = s.daysSince !== null && s.daysSince >= 7;
+        const isFresh = s.daysSince !== null && s.daysSince <= 1;
+        const sparkMax = Math.max(1, ...s.spark);
+        const W = 280, H = 38, step = W/Math.max(1, s.spark.length-1);
+        const sparkPath = s.spark.map((v,i) => (i?"L":"M")+(i*step).toFixed(1)+" "+(H-2-(H-6)*v/sparkMax).toFixed(1)).join(" ");
+        const sparkArea = sparkPath + ` L ${(s.spark.length-1)*step} ${H} L 0 ${H} Z`;
+        const lastLabel = s.daysSince === null ? "기록 없음" : s.daysSince === 0 ? "오늘 작성" : s.daysSince === 1 ? "어제 작성" : s.daysSince+"일 전 작성";
+        const metaCls = isWarn ? "warn" : (isFresh ? "good" : "");
+        const cardCls = `emp-card${isWarn ? " warning" : ""}`;
+        const rankBadge = idx < 3 && state.adminSort === "posts" ? `<span class="emp-card-rank">#${idx+1}</span>` : "";
+        const avgDisp = s.avg !== null ? s.avg.toFixed(1) : "-";
+
+        return `<div class="${cardCls}">
+          <div class="emp-card-head">
+            <div class="emp-card-avatar">${esc(shortName(s.name))}</div>
+            <div style="min-width:0">
+              <div class="emp-card-name">${esc(s.name)}${s.name===state.me?` <span style="color:var(--text-3);font-weight:500;font-size:11px;letter-spacing:0">(나)</span>`:""}</div>
+              <div class="emp-card-meta ${metaCls}">${esc(lastLabel)}</div>
+            </div>
+            ${rankBadge}
+          </div>
+          <div class="emp-card-stats">
+            <div class="emp-card-stat"><div class="emp-card-stat-label">작성</div><div class="emp-card-stat-value">${s.count}</div></div>
+            <div class="emp-card-stat"><div class="emp-card-stat-label">평균순위</div><div class="emp-card-stat-value">${avgDisp}</div></div>
+            <div class="emp-card-stat"><div class="emp-card-stat-label">10위 내</div><div class="emp-card-stat-value">${s.top10}</div></div>
+          </div>
+          <div class="emp-card-spark">
+            <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+              <defs><linearGradient id="cspark${idx}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a78bfa" stop-opacity="0.4"/><stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/></linearGradient></defs>
+              <path d="${sparkArea}" fill="url(#cspark${idx})"/>
+              <path d="${sparkPath}" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>`;
+      }).join("");
+
+      // 7일 히트맵
+      const heatmapDays = [];
+      const todayKey = today();
+      for(let i=6;i>=0;i--){
+        const d = new Date(); d.setDate(d.getDate()-i);
+        const k = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+        const dow = ["일","월","화","수","목","금","토"][d.getDay()];
+        heatmapDays.push({ key:k, label:String(d.getMonth()+1)+"/"+d.getDate(), dow, isToday: k === todayKey });
+      }
+      const heatmapMatrix = people().map(name => ({
+        name,
+        cells: heatmapDays.map(day => state.records.filter(r => r.employee === name && r.date === day.key).length)
+      }));
+      const heatmapMax = Math.max(1, ...heatmapMatrix.flatMap(r => r.cells));
+      function heatLevel(v){
+        if(v === 0) return 0;
+        const ratio = v / heatmapMax;
+        if(ratio <= 0.25) return 1;
+        if(ratio <= 0.5) return 2;
+        if(ratio <= 0.75) return 3;
+        return 4;
+      }
+      const heatmapHeader = `<div class="heatmap-corner"></div>` + heatmapDays.map(d => `<div class="heatmap-day-head ${d.isToday?"today":""}">${esc(d.label)}<br><span style="font-size:10px;font-weight:500">${esc(d.dow)}</span></div>`).join("");
+      const heatmapBody = heatmapMatrix.map(row => {
+        return `<div class="heatmap-name">${esc(row.name)}</div>` + row.cells.map(c => `<div class="heatmap-cell lvl-${heatLevel(c)}" title="${c}건">${c||""}</div>`).join("");
+      }).join("");
+
+      // 위험 직원 — 7일 이상 미작성
+      const inactive = stats.filter(s => s.daysSince !== null && s.daysSince >= 7);
+      const noActivity = stats.filter(s => s.daysSince === null);
+      const warningPanel = (inactive.length || noActivity.length) ? `
+        <div class="panel" style="border-color:var(--bad-border);background:linear-gradient(180deg,rgba(251,113,133,0.04) 0%,var(--surface) 50%);margin-bottom:18px">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title" style="color:#fda4af">⚠ 활동 점검 필요 (${inactive.length + noActivity.length}명)</div>
+              <div class="panel-sub">7일 이상 작성 기록이 없는 직원입니다.</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            ${inactive.map(s => `<span class="pill" style="background:rgba(251,113,133,0.12);color:#fda4af;border-color:var(--bad-border);padding:6px 12px;font-size:12.5px">${esc(s.name)} · ${s.daysSince}일 전</span>`).join("")}
+            ${noActivity.map(s => `<span class="pill" style="background:var(--surface-2);color:var(--text-3);padding:6px 12px;font-size:12.5px">${esc(s.name)} · 기록 없음</span>`).join("")}
+          </div>
+        </div>` : "";
+
+      const rangeChips = ["7","30","90","all"].map(v => `<button class="filter-chip ${state.adminRange===v?"active":""}" onclick="window.app.setAdminRange('${v}')">${v==="all"?"전체":v+"일"}</button>`).join("");
+      const sortOpts = [["posts","작성량 ↓"],["rank","평균 순위 좋은순"],["recent","최근 활동순"]].map(([v,l]) => `<option value="${v}" ${state.adminSort===v?"selected":""}>${esc(l)}</option>`).join("");
+
+      return renderShell(pageHeader("팀 대시보드", state.status?"":"관리자 전용 — "+rangeLabel+" 기준 팀 전체 성과", `<button class="btn btn-primary" onclick="window.app.setTab('전체 현황')">전체 현황 →</button>`) + `
+        <div class="filter-row">
+          ${rangeChips}
+          <span class="divider-v"></span>
+          <select class="filter-select" onchange="window.app.setAdminSort(this.value)">${sortOpts}</select>
+          <span class="filter-meta">${esc(rangeLabel)} · ${activeEmployees}/${totalEmployees}명 활동 중</span>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-label">팀 전체 작성</div><div class="kpi-value">${filtered.length}</div><div class="kpi-sub">${esc(rangeLabel)}</div></div>
+          <div class="kpi"><div class="kpi-label">팀 평균 순위</div><div class="kpi-value">${teamAvg}${teamAvg!=="-"?"위":""}</div><div class="kpi-sub">유효 순위 기준</div></div>
+          <div class="kpi"><div class="kpi-label">10위 내 노출</div><div class="kpi-value">${teamTop10}</div><div class="kpi-sub good">팀 누적 성과</div></div>
+          <div class="kpi"><div class="kpi-label">활동 직원</div><div class="kpi-value">${activeEmployees}<span style="font-size:18px;color:var(--text-3);font-weight:600">/${totalEmployees}</span></div><div class="kpi-sub">${esc(rangeLabel)} 작성 인원</div></div>
+        </div>
+        ${warningPanel}
+        <div class="panel" style="margin-bottom:18px">
+          <div class="panel-head">
+            <div><div class="panel-title">직원별 성과</div><div class="panel-sub">정렬 기준 변경 시 카드 순서 재정렬됩니다</div></div>
+          </div>
+          <div class="emp-card-grid">${cards}</div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <div><div class="panel-title">최근 7일 작성 히트맵</div><div class="panel-sub">셀이 진할수록 그날 많이 작성한 것</div></div>
+            <div class="heatmap-legend">
+              <span>적음</span>
+              <span class="heatmap-legend-cell lvl-0" style="background:var(--surface-2)"></span>
+              <span class="heatmap-legend-cell lvl-1" style="background:rgba(167,139,250,0.15)"></span>
+              <span class="heatmap-legend-cell lvl-2" style="background:rgba(167,139,250,0.32)"></span>
+              <span class="heatmap-legend-cell lvl-3" style="background:rgba(167,139,250,0.55)"></span>
+              <span class="heatmap-legend-cell lvl-4" style="background:#a78bfa"></span>
+              <span>많음</span>
+            </div>
+          </div>
+          <div class="heatmap">${heatmapHeader}${heatmapBody}</div>
+        </div>`);
+    }
+
     function renderContent(){
       if(!state.me) return renderLogin();
       switch(state.tab){
@@ -805,6 +1017,7 @@
         case "작성 캘린더": return renderCalendar();
         case "내 성과": return renderMy();
         case "업무 기록": return renderAll();
+        case "팀 대시보드": return isAdmin() ? renderTeamDashboard() : renderSummary();
         case "직원 관리": return renderEmployees();
         default: return renderSummary();
       }
@@ -844,6 +1057,8 @@
       setSummaryRange(v){ state.summaryRange = v; render(); },
       setSummaryEmployee(v){ state.summaryEmployee = v; render(); },
       setSummaryKeywordCat(v){ state.summaryKeywordCat = v; render(); },
+      setAdminSort(v){ state.adminSort = v; render(); },
+      setAdminRange(v){ state.adminRange = v; render(); },
       formInput(form, field, value){
         if(state.forms[form]) state.forms[form][field] = value;
       },
